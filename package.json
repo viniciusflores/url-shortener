@@ -2,6 +2,7 @@
   "name": "url-shortener",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "repository": "git@github.com:viniciusflores/url-shortener.git",
   "author": "Vinicius Flores <viniciusflores379@gmail.com>",
   "license": "MIT",
