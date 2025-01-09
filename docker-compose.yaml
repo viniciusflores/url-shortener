@@ -1,0 +1,16 @@
+services:
+  db:
+    image: ${DB_POSTGRES_IMAGE_NAME}
+    container_name: url-shortener-postgres
+    environment:
+      POSTGRES_USER: ${DB_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DB_POSTGRES_DB}
+    ports:
+      - 5432:${DB_POSTGRES_PORT}
+    volumes:
+      - db:/var/lib/postgresql/data
+
+volumes:
+  db:
+    driver: local
