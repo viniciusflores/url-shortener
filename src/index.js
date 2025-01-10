@@ -48,7 +48,7 @@ app.post('/', async (req, res) => {
       })
     } while (availableHash)
 
-    const urlShortener = await prisma.urlShortener.create({
+    await prisma.urlShortener.create({
       data: {
         original_url,
         hashed_url
