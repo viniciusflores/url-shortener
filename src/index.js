@@ -1,16 +1,21 @@
 import express from 'express'
+import { PrismaClient } from '@prisma/client'
 import crypto from 'node:crypto'
 
 const app = express()
 
+const prisma = new PrismaClient()
+
 app.use(express.json())
 
-let mydb = []
-
-app.get('/:hash', (req, res) => {
+app.get('/:hash', async (req, res) => {
   const { hash } = req.params
 
-  const data = mydb.find((item) => item.hashed_url === hash)
+  const data = await prisma.urlShortener.findFirst({
+    where: {
+      hashed_url: hash
+    }
+  })
 
   if (!data) {
     return res.status(404).send('Not Found')
@@ -19,25 +24,38 @@ app.get('/:hash', (req, res) => {
   res.redirect(data.original_url)
 })
 
-app.post('/', (req, res) => {
-
+app.post('/', async (req, res) => {
   const { original_url } = req.body
-  let hashed_url
 
-  const data = mydb.find((item) => item.original_url === original_url)
+  const data = await prisma.urlShortener.findFirst({
+    where: {
+      original_url
+    }
+  })
 
   if (data) {
-    hashed_url = data.hashed_url
+    return res.json({ data })
   } else {
-    do {
-      hashed_url = crypto.randomBytes(1).toString("base64");
-      mydb.push({ original_url, hashed_url })
-    } while (mydb.indexOf(hashed_url) !== -1)
-  }
-  console.log('mydb: %O', mydb);
-  console.log('__');
+    let availableHash
+    let hashed_url
 
-  return res.json({ original_url, hashed_url })
+    do {
+      hashed_url = crypto.randomBytes(1).toString("base64")
+      availableHash = await prisma.urlShortener.findUnique({
+        where: {
+          hashed_url
+        }
+      })
+    } while (availableHash)
+
+    const urlShortener = await prisma.urlShortener.create({
+      data: {
+        original_url,
+        hashed_url
+      }
+    })
+    return res.json({ hashed_url })
+  }
 })
 
 app.listen(3000, () => {
