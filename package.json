@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node src/index.js",
+    "start:prod": "prisma migrate deploy && npm run start",
     "dev": "nodemon src/index.js"
   },
   "dependencies": {

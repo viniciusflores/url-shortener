@@ -1,6 +1,11 @@
 import express from 'express'
 import { PrismaClient } from '@prisma/client'
 import crypto from 'node:crypto'
+import dotenv from 'dotenv'
+
+dotenv.config()
+
+const { APP_PORT, HASH_STRONG_NUMBER } = process.env
 
 const app = express()
 
@@ -40,7 +45,7 @@ app.post('/', async (req, res) => {
     let hashed_url
 
     do {
-      hashed_url = crypto.randomBytes(1).toString("base64")
+      hashed_url = crypto.randomBytes(Number(HASH_STRONG_NUMBER)).toString("base64")
       availableHash = await prisma.urlShortener.findUnique({
         where: {
           hashed_url
@@ -58,7 +63,7 @@ app.post('/', async (req, res) => {
   }
 })
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000')
+app.listen(APP_PORT, () => {
+  console.log(`Server is running on http://localhost:${APP_PORT} 🚀`)
 })
 
