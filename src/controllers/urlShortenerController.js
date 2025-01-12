@@ -43,8 +43,8 @@ const createUrlShortener = async (req, res) => {
     } while (availableHash);
 
     createUrl(original_url, hashed_url);
-    const shotened_url = `${process.env.BASE_URL}/${hashed_url}`;
-    return res.json({ shotened_url });
+    const shortened_url = `${process.env.BASE_URL}/${hashed_url}`;
+    return res.json({ shotened_url: shortened_url });
   }
 };
 
