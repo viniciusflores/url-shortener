@@ -47,28 +47,34 @@ yarn
 
 1. Clone the `.env.example`, rename to `.env` file in the project root:
 
-   ```env
-   DATABASE_URL="your_database_connection_url"
-   BASE_URL="http://localhost:3000"
-   PORT=3000
-   HASH_STRONG_NUMBER=7
-   ```
+```env
+DATABASE_URL="your_database_connection_url"
+BASE_URL="http://localhost:3000"
+PORT=3000
+HASH_STRONG_NUMBER=7
+```
 
 2. To use docker-compose for the database local, include the following variables:
 
-   ```env
-   DB_POSTGRES_IMAGE_NAME=postgres:15.2-alpine
-   DB_POSTGRES_USER=postgres-user
-   DB_POSTGRES_PASSWORD=ultra-secrect-password
-   DB_POSTGRES_DB=url-shortener
-   DB_POSTGRES_PORT=5432
-   ```
+```env
+DB_POSTGRES_IMAGE_NAME=postgres:15.2-alpine
+DB_POSTGRES_USER=postgres-user
+DB_POSTGRES_PASSWORD=ultra-secrect-password
+DB_POSTGRES_DB=url-shortener
+DB_POSTGRES_PORT=5432
+```
 
-3. Run Prisma migrations to set up the database:
+3. To run docker-compose, don't forget to send the .env file
 
-   ```bash
-   npx prisma migrate deploy
-   ```
+```docker-compose
+docker-compose --env-file=.env up -d --build
+```
+
+4. Run Prisma migrations to set up the database:
+
+```bash
+yarn prisma migrate deploy
+```
 
 ---
 
