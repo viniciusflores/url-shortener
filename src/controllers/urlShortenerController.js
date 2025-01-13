@@ -23,18 +23,22 @@ const createUrlShortener = async (req, res) => {
   const { original_url } = req.body;
 
   if (!original_url) {
-    return res.status(400).send('Bad Request');
+    return res
+      .status(400)
+      .send('Bad Request: Absence of original_url parameter');
   }
 
   if (!isValidURL(original_url)) {
-    return res.status(400).send('Invalid URL');
+    return res
+      .status(400)
+      .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
   }
 
   const data = await getByUrl(original_url);
 
   if (data) {
     return res.json({
-      shotened_url: `${BASE_URL}/${data.hashed_url}`,
+      shortened_url: `${BASE_URL}/url/${data.hashed_url}`,
     });
   } else {
     let availableHash;
@@ -46,8 +50,8 @@ const createUrlShortener = async (req, res) => {
     } while (availableHash);
 
     createUrl(original_url, hashed_url);
-    const shortened_url = `${process.env.BASE_URL}/${hashed_url}`;
-    return res.json({ shotened_url: shortened_url });
+    const shortened_url = `${process.env.BASE_URL}/url/${hashed_url}`;
+    return res.json({ shortened_url: shortened_url });
   }
 };
 
