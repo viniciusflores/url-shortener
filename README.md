@@ -109,7 +109,7 @@ The server will be available at: `http://localhost:3000` by default.
 
 ```json
 {
-  "shotened_url": "http://localhost:3000/RHxgi+608w=="
+  "shortened_url": "http://localhost:3000/RHxgi+608w=="
 }
 ```
 
