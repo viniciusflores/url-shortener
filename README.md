@@ -181,3 +181,5 @@ Do you wanna use this app in real-time now?
 use the BASE_URL = "<https://url-shortener-3kdx.onrender.com>"
 
 - Remember to set the correct url_path and parameters to use in real-world
+
+  - This is a example: "<https://url-shortener-3kdx.onrender.com/url/zJreQMsNHg==>"
