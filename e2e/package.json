@@ -1,0 +1,16 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "mocha -r dotenv/config -r utils/hooks.js"
+  },
+  "dependencies": {
+    "chai": "^5.1.2",
+    "dotenv": "^16.4.7",
+    "got": "^14.4.5",
+    "mocha": "^11.0.1"
+  }
+}
