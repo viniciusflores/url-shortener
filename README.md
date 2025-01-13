@@ -117,9 +117,26 @@ The server will be available at: `http://localhost:3000` by default.
 
 ## **Testing**
 
-To run tests (if applicable):
+Tests can be performed at different levels, unitary, integrated, among others.
+
+#### **Unit Tests**
+
+- working in progress
+
+#### **Integration Tests**
+
+To run the integration tests, ensure that your application is up and running, integrated with the database, and has all database migrations already executed.
+
+As integrated tests simulate an external agent accessing the application, a separate project was created for execution, located in the e2e folder.
+
+As with the main project, ensure that the project has a .env file, and you can use the .env.example as a template.
 
 ```bash
+# Access folder
+cd e2e
+# Install dependencies
+yarn
+# Run tests
 yarn test
 ```
 
