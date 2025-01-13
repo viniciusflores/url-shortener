@@ -1,6 +1,7 @@
 import { getByHash, getByUrl, createUrl } from '../models/urlShortenerModel.js';
 import { generateHash } from '../utils/generateHash.js';
 import { isValidURL } from '../utils/urlValidator.js';
+const { BASE_URL } = process.env;
 
 const getUrlShortenerByHash = async (req, res) => {
   const { hash } = req.params;
@@ -32,7 +33,9 @@ const createUrlShortener = async (req, res) => {
   const data = await getByUrl(original_url);
 
   if (data) {
-    return res.json({ data });
+    return res.json({
+      shotened_url: `${BASE_URL}/${data.hashed_url}`,
+    });
   } else {
     let availableHash;
     let hashed_url;
