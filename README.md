@@ -16,6 +16,7 @@ This is an API for shortening URLs, built with Express.js and Prisma. It allows 
 6. [Testing](#testing)
 7. [Technologies Used](#technologies-used)
 8. [License](#license)
+9. [Extra](#extra)
 
 ---
 
@@ -165,3 +166,12 @@ yarn test
 ## **License**
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+## **Extra**
+
+Do you wanna use this app in real-time now?
+use the BASE_URL = "<https://url-shortener-3kdx.onrender.com>"
+
+- Remember to set the correct url_path and parameters to use in real-world
