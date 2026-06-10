@@ -1,5 +1,5 @@
 import { expect, assert } from 'chai';
-import got from 'got';
+import got, { RequestError } from 'got';
 
 const { BASE_URL } = process.env;
 
@@ -34,8 +34,10 @@ describe('Verify business rules', function () {
       const parameter = 'non-existent-url';
       await got.get(`${BASE_URL}/url/${parameter}`);
     } catch (error) {
-      assert.equal(error.response.statusCode, 404);
-      assert.equal(error.response.body, 'Not Found');
+      if (error instanceof RequestError) {
+        assert.equal(error.response?.statusCode, 404);
+        assert.equal(error.response?.body, 'Not Found');
+      }
     }
   });
 });

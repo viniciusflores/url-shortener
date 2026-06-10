@@ -3,14 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "type": "module",
   "scripts": {
-    "test": "mocha -r dotenv/config -r utils/hooks.js"
+    "test": "tsx node_modules/mocha/bin/mocha.js --extension ts --file ./utils/hooks.ts 'test/**/*.spec.ts'"
   },
   "dependencies": {
     "chai": "^5.1.2",
     "dotenv": "^16.4.7",
     "got": "^14.4.5",
     "mocha": "^11.0.1"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^6.0.3"
   }
 }
