@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger.js';
+import { logger } from '../utils/logger';
 
 const errorHandler = (err, req, res, next) => {
   console.log('Middleware Error Handling');

@@ -2,35 +2,43 @@
   "name": "url-shortener",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "repository": "git@github.com:viniciusflores/url-shortener.git",
   "author": "Vinicius Flores <viniciusflores379@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "node src/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "start:prod": "prisma migrate deploy && npm run start",
-    "dev": "nodemon src/server.js",
+    "studio": "prisma studio",
     "prepare": "husky"
   },
   "dependencies": {
     "@prisma/client": "6.2.1",
     "dotenv": "^16.4.7",
-    "eslint-plugin-mocha": "^10.5.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@types/express": "^5.0.6",
+    "@types/express-rate-limit": "^6.0.2",
+    "@types/node": "^25.9.2",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-mocha": "^10.5.0",
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.14.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.3.0",
-    "nodemon": "^3.1.9",
     "prettier": "3.4.2",
-    "prisma": "^6.2.1"
+    "prisma": "^6.2.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0"
   },
   "lint-staged": {
     "**/*": [

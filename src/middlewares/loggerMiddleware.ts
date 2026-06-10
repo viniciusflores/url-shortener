@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger.js';
+import { logger } from '../utils/logger';
 
 const loggerMiddleware = (req, res, next) => {
   const { method, url } = req;
