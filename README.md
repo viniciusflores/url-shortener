@@ -35,7 +35,7 @@ This is an API for shortening URLs, built with Express.js and Prisma. It allows 
 git clone git@github.com:viniciusflores/url-shortener.git
 
 # Navigate to the project directory
-cd url-shortener-api
+cd url-shortener
 
 # Install dependencies
 yarn
@@ -50,11 +50,11 @@ yarn
 ```env
 DATABASE_URL="your_database_connection_url"
 BASE_URL="http://localhost:3000"
-PORT=3000
+APP_PORT=3000
 HASH_STRONG_NUMBER=7
 ```
 
-2. To use docker-compose for the database local, include the following variables:
+1. To use docker-compose for the database local, include the following variables:
 
 ```env
 DB_POSTGRES_IMAGE_NAME=postgres:15.2-alpine
@@ -64,13 +64,13 @@ DB_POSTGRES_DB=url-shortener
 DB_POSTGRES_PORT=5432
 ```
 
-3. To run docker-compose, don't forget to send the .env file
+1. To run docker-compose, don't forget to send the .env file
 
 ```docker-compose
 docker-compose --env-file=.env up -d --build
 ```
 
-4. Run Prisma migrations to set up the database:
+1. Run Prisma migrations to set up the database:
 
 ```bash
 yarn prisma migrate deploy
@@ -109,7 +109,7 @@ The server will be available at: `http://localhost:3000` by default.
 
 ```json
 {
-  "shortened_url": "http://localhost:3000/RHxgi+608w=="
+  "shortened_url": "http://localhost:3000/url/RHxgi+608w=="
 }
 ```
 
