@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import express from 'express';
+import express, { Application } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import routes from './routes.js';
 import { loggerMiddleware } from './middlewares/loggerMiddleware.js';
@@ -7,7 +7,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 
 dotenv.config();
 
-const app = express();
+const app: Application = express();
 
 app.use(express.json());
 app.use(

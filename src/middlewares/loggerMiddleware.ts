@@ -1,6 +1,11 @@
+import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger.js';
 
-const loggerMiddleware = (req, res, next) => {
+const loggerMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   const { method, url } = req;
   const start = Date.now();
 

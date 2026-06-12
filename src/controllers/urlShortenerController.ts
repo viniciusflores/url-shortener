@@ -1,12 +1,16 @@
+import { Request, Response } from 'express';
 import { getByHash, getByUrl, createUrl } from '../models/urlShortenerModel.js';
 import { generateHash } from '../utils/generateHash.js';
 import { isValidURL } from '../utils/urlValidator.js';
 const { BASE_URL } = process.env;
 
-const getUrlShortenerByHash = async (req, res) => {
+const getUrlShortenerByHash = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
   const { hash } = req.params;
 
-  if (!hash) {
+  if (!hash || typeof hash !== 'string') {
     return res.status(400).send('Bad Request');
   }
 
@@ -16,10 +20,13 @@ const getUrlShortenerByHash = async (req, res) => {
     return res.status(404).send('Not Found');
   }
 
-  res.redirect(data.original_url);
+  return res.redirect(data.original_url);
 };
 
-const createUrlShortener = async (req, res) => {
+const createUrlShortener = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
   const { original_url } = req.body;
 
   if (!original_url) {
@@ -49,7 +56,7 @@ const createUrlShortener = async (req, res) => {
       availableHash = await getByHash(hashed_url);
     } while (availableHash);
 
-    createUrl(original_url, hashed_url);
+    await createUrl(original_url, hashed_url);
     const shortened_url = `${process.env.BASE_URL}/url/${hashed_url}`;
     return res.json({ shortened_url: shortened_url });
   }

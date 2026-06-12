@@ -15,7 +15,7 @@ describe('Happy Path test', function () {
     });
 
     const { statusCode } = response;
-    const body = JSON.parse(response.body);
+    const body = JSON.parse(response.body) as { shortened_url: string };
 
     expect(statusCode).to.equal(200);
     expect(body).to.have.property('shortened_url');
@@ -32,18 +32,18 @@ describe('Happy Path test', function () {
       },
     });
 
-    const urlWithShortenerPath = JSON.parse(data.body).shortened_url;
+    const urlWithShortenerPath = (
+      JSON.parse(data.body) as { shortened_url: string }
+    ).shortened_url;
 
-    const response = await got.get(`${urlWithShortenerPath}`);
+    const response = await got.get(urlWithShortenerPath);
     const { statusCode, redirectUrls } = response;
-    const body = JSON.parse(data.body);
+    const body = JSON.parse(data.body) as { shortened_url: string };
 
     expect(statusCode).to.equal(200);
     expect(body).to.have.property('shortened_url');
     expect(body.shortened_url).that.is.a('string');
-    expect(redirectUrls[0])
-      .to.have.property('href')
-      .and.equal(`${original_url}`);
+    expect(redirectUrls[0]).to.have.property('href').and.equal(original_url);
     expect(redirectUrls[0])
       .to.have.property('search')
       .and.equal(`?q=${timestamp}`);

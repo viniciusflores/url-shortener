@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 const { HASH_STRONG_NUMBER } = process.env;
 
-const generateHash = () => {
+const generateHash = (): string => {
   if (!HASH_STRONG_NUMBER) {
     throw new Error('HASH_STRONG_NUMBER is not defined');
   }

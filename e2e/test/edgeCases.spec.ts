@@ -10,7 +10,7 @@ describe('Verify edge cases', function () {
           wrong_parameter: 'original_url',
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       assert.equal(error.response.statusCode, 400);
       assert.equal(
         error.response.body,
@@ -26,7 +26,7 @@ describe('Verify edge cases', function () {
           original_url: 'google',
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       assert.equal(error.response.statusCode, 400);
       assert.equal(
         error.response.body,
