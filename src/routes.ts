@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
   createUrlShortener,
   getUrlShortenerByHash,
-} from './controllers/urlShortenerController.js';
+} from './controllers/urlShortenerController';
 
 const routes = Router();
 

@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import app from './app.js';
-import { logger } from './utils/logger.js';
+import app from './app';
+import { logger } from './utils/logger';
 
 const { APP_PORT, BASE_URL } = process.env;
 

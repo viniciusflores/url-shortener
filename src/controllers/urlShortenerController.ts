@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { getByHash, getByUrl, createUrl } from '../models/urlShortenerModel.js';
-import { generateHash } from '../utils/generateHash.js';
-import { isValidURL } from '../utils/urlValidator.js';
+import { getByHash, getByUrl, createUrl } from '../models/urlShortenerModel';
+import { generateHash } from '../utils/generateHash';
+import { isValidURL } from '../utils/urlValidator';
 const { BASE_URL } = process.env;
 
 const getUrlShortenerByHash = async (

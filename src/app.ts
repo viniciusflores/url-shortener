@@ -1,8 +1,8 @@
 import express, { Application } from 'express';
 import { rateLimit } from 'express-rate-limit';
-import routes from './routes.js';
-import { loggerMiddleware } from './middlewares/loggerMiddleware.js';
-import { errorHandler } from './middlewares/errorHandler.js';
+import routes from './routes';
+import { loggerMiddleware } from './middlewares/loggerMiddleware';
+import { errorHandler } from './middlewares/errorHandler';
 
 const app: Application = express();
 
