@@ -11,12 +11,13 @@ This is an API for shortening URLs, built with Express.js and Prisma. It allows 
 1. [Prerequisites](#prerequisites)
 2. [Installation](#installation)
 3. [Configuration](#configuration)
-4. [Usage](#usage)
-5. [Endpoints](#endpoints)
-6. [Testing](#testing)
-7. [Technologies Used](#technologies-used)
-8. [License](#license)
-9. [Extra](#extra)
+4. [Database & Migrations](#database--migrations)
+5. [Usage](#usage)
+6. [Endpoints](#endpoints)
+7. [Testing](#testing)
+8. [Technologies Used](#technologies-used)
+9. [License](#license)
+10. [Extra](#extra)
 
 ---
 
@@ -70,11 +71,94 @@ DB_POSTGRES_PORT=5432
 docker-compose --env-file=.env up -d --build
 ```
 
-1. Run Prisma migrations to set up the database:
+---
+
+## **Database & Migrations**
+
+This project uses **Prisma ORM v7** with a PostgreSQL adapter (`@prisma/adapter-pg`).  
+All database configuration lives in [`prisma.config.ts`](./prisma.config.ts) — the `DATABASE_URL` env variable is the single source of truth.
+
+---
+
+### 🆕 Fresh dev environment (first time)
+
+Use this when setting up the project locally for the first time, or after cloning into a new machine.
+
+```bash
+# 1. Start the database (Docker)
+docker-compose --env-file=.env up -d
+
+# 2. Apply all existing migrations to the empty database
+yarn prisma migrate deploy
+
+# 3. Regenerate the Prisma client
+yarn generate
+
+# 4. Start the dev server
+yarn dev
+```
+
+> `prisma migrate deploy` applies every migration in `prisma/migrations/` in order, without prompting. It is safe to run on any clean database.
+
+---
+
+### ✏️ Creating a new migration (after changing the schema)
+
+Use this whenever you edit `prisma/schema.prisma` and need to persist the change to the database.
+
+```bash
+# 1. Edit prisma/schema.prisma as needed, then:
+yarn migrate
+# Prisma will prompt for a migration name, generate the SQL, and apply it.
+
+# 2. Regenerate the Prisma client to pick up schema changes
+yarn generate
+```
+
+> `yarn migrate` runs `prisma migrate dev`, which: creates the migration file, applies it to your local DB, and keeps `prisma/migrations/` in sync.
+
+---
+
+### 🔄 Re-applying / catching up after pulling changes
+
+Use this when you pull new commits that include schema changes made by someone else.
+
+```bash
+# Apply any unapplied migrations
+yarn prisma migrate deploy
+
+# Regenerate the client
+yarn generate
+```
+
+---
+
+### 🚀 Production / staging deploy
+
+Use `migrate deploy` (never `migrate dev`) in production — it applies pending migrations without interactive prompts or creating new ones.
 
 ```bash
 yarn prisma migrate deploy
 ```
+
+The `start:prod` script already does this automatically before starting the server:
+
+```bash
+yarn start:prod
+# → runs: prisma migrate deploy && node dist/server.js
+```
+
+---
+
+### 📋 Quick reference
+
+| Situation                             | Command                      |
+| ------------------------------------- | ---------------------------- |
+| Inspect current DB state              | `yarn prisma migrate status` |
+| Regenerate client only                | `yarn generate`              |
+| Create + apply a new migration        | `yarn migrate`               |
+| Apply existing migrations (CI / prod) | `yarn prisma migrate deploy` |
+| Open Prisma Studio (DB browser)       | `yarn prisma studio`         |
 
 ---
 

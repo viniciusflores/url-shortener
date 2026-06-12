@@ -1,5 +1,9 @@
-import { PrismaClient, UrlShortener } from '@prisma/client';
-const prisma = new PrismaClient();
+import { PrismaClient } from '../../prisma/generated/client';
+import type { UrlShortener } from '../../prisma/generated/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 const createUrl = async (
   original_url: string,
