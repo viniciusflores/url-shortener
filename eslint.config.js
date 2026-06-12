@@ -10,7 +10,7 @@ export default tseslint.config(
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
-  mochaPlugin.configs.flat.recommended,
+  mochaPlugin.configs.recommended,
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',

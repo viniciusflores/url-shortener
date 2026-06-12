@@ -8,10 +8,10 @@
     "test": "tsx node_modules/mocha/bin/mocha.js -r dotenv/config -r utils/hooks.ts \"test/**/*.ts\""
   },
   "dependencies": {
-    "chai": "^5.1.2",
-    "dotenv": "^16.4.7",
-    "got": "^14.4.5",
-    "mocha": "^11.0.1"
+    "chai": "^6.2.2",
+    "dotenv": "^17.4.2",
+    "got": "^15.0.5",
+    "mocha": "^11.7.6"
   },
   "devDependencies": {
     "@types/chai": "^5.2.3",
