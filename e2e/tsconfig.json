@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "esModuleInterop": true,
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["mocha"]
   },
