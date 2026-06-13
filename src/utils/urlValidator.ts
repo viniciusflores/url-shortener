@@ -1,9 +1,14 @@
 const isValidURL = (url: string | null | undefined): boolean => {
-  if (!url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      parsed.hostname.includes('.')
+    );
+  } catch {
     return false;
   }
-  const isValid = url.match(/^https?:\/\/(www\.)?[\w\W]+/);
-  return !!isValid;
 };
 
 export { isValidURL };
