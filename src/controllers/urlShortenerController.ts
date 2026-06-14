@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getByHash, getByUrl, createUrl } from '../models/urlShortenerModel';
+import { getByHash, getByUrl, createUrl } from '../service/urlShortenerService';
 import { generateHash } from '../utils/generateHash';
 import { isValidURL } from '../utils/urlValidator';
 const { BASE_URL } = process.env;

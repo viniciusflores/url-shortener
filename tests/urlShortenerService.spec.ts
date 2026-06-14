@@ -24,7 +24,7 @@ import {
   createUrl,
   getByHash,
   getByUrl,
-} from '../src/models/urlShortenerModel';
+} from '../src/service/urlShortenerService';
 
 const fakeRecord = {
   id: 1,

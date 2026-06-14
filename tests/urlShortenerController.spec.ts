@@ -10,7 +10,7 @@ const { mockGetByHash, mockGetByUrl, mockCreateUrl } = vi.hoisted(() => {
   };
 });
 
-vi.mock('../src/models/urlShortenerModel', () => ({
+vi.mock('../src/service/urlShortenerService', () => ({
   getByHash: mockGetByHash,
   getByUrl: mockGetByUrl,
   createUrl: mockCreateUrl,
