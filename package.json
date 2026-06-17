@@ -14,6 +14,7 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "test": "vitest",
+    "setup": "yarn; prisma migrate dev --name init && prisma generate",
     "prepare": "husky"
   },
   "dependencies": {

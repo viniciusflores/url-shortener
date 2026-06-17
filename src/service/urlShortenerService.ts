@@ -1,42 +1,47 @@
-import { PrismaClient } from '../../prisma/generated/client';
-import type { UrlShortener } from '../../prisma/generated/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import type { IUrlRepository } from '../repositories/interfaces/urlRepository';
+import { isValidURL } from '../utils/urlValidator';
+import { generateHash, isValidHash } from '../utils/hashUtils';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
+const MAX_ATTEMPTS = 20;
+export class UrlShortenerService {
+  constructor(private readonly repo: IUrlRepository) {}
 
-const createUrl = async (
-  original_url: string,
-  hashed_url: string,
-): Promise<UrlShortener> => {
-  const data = await prisma.urlShortener.create({
-    data: {
-      original_url,
-      hashed_url,
-    },
-  });
+  async shorten(originalUrl: string, baseUrl: string): Promise<string> {
+    if (!originalUrl) {
+      throw new Error('Missing URL');
+    }
+    if (!isValidURL(originalUrl)) {
+      throw new Error('Invalid URL');
+    }
 
-  return data;
-};
+    const existPreviousRecord = await this.repo.findByOriginalUrl(originalUrl);
+    if (existPreviousRecord) {
+      return `${baseUrl}/url/${existPreviousRecord.hashed_url}`;
+    }
 
-const getByUrl = async (original_url: string): Promise<UrlShortener | null> => {
-  const data = await prisma.urlShortener.findFirst({
-    where: {
-      original_url,
-    },
-  });
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const hash = generateHash();
 
-  return data;
-};
+      const existHashRecord = await this.repo.findByHash(hash);
 
-const getByHash = async (hash: string): Promise<UrlShortener | null> => {
-  const data = await prisma.urlShortener.findFirst({
-    where: {
-      hashed_url: hash,
-    },
-  });
+      if (!existHashRecord) {
+        await this.repo.create(originalUrl, hash);
+        return `${baseUrl}/url/${hash}`;
+      }
+    }
 
-  return data;
-};
+    throw new Error('Failed to generate unique hash after multiple attempts');
+  }
 
-export { createUrl, getByHash, getByUrl };
+  async resolveShortenedUrl(hash: string): Promise<string> {
+    if (!hash || !isValidHash(hash)) {
+      return '';
+    }
+
+    const record = await this.repo.findByHash(hash);
+    if (!record) {
+      throw new Error('URL not found');
+    }
+    return record.original_url;
+  }
+}
