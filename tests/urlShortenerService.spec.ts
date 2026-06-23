@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { MockUrlRepository } from '../src/repositories/mock/url_mock_repo';
+import { MockUrlRepository } from '../src/repositories/mock/mockUrlRepo';
 import { UrlShortenerService } from '../src/service/urlShortenerService';
 
 const repo = new MockUrlRepository();
@@ -63,7 +63,6 @@ describe('UrlShortenerService', () => {
     };
 
     const service = new UrlShortenerService(repo);
-
     await expect(
       service.shorten('https://www.google.com', 'http://localhost:3000'),
     ).rejects.toThrow('Failed to generate unique hash after multiple attempts');
