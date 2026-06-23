@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { generateHash } from '../src/utils/generateHash';
+import { generateHash, isValidHash } from '../src/utils/hashUtils';
 
 describe('generateHash', () => {
   beforeEach(() => {
@@ -36,5 +36,40 @@ describe('generateHash', () => {
   test('throws when HASH_STRONG_NUMBER is zero or negative', () => {
     vi.stubEnv('HASH_STRONG_NUMBER', '0');
     expect(() => generateHash()).toThrow('Invalid HASH_STRONG_NUMBER: "0"');
+  });
+});
+
+describe('isValidHash', () => {
+  test('returns true for a valid alphanumeric hash', () => {
+    expect(isValidHash('abc123')).toBe(true);
+  });
+
+  test('returns true for a hash containing allowed special chars (+, 1, =)', () => {
+    expect(isValidHash('aB3+1=')).toBe(true);
+  });
+
+  test('returns true for a hash of exactly 3 characters', () => {
+    expect(isValidHash('aB3')).toBe(true);
+  });
+
+  test('returns false for a hash shorter than 3 characters', () => {
+    expect(isValidHash('ab')).toBe(false);
+    expect(isValidHash('')).toBe(false);
+  });
+
+  test('returns false when the hash contains a slash', () => {
+    expect(isValidHash('abc/def')).toBe(false);
+  });
+
+  test('returns false when the hash contains other invalid characters', () => {
+    expect(isValidHash('abc!def')).toBe(false);
+    expect(isValidHash('abc def')).toBe(false);
+  });
+
+  test('generated hashes pass isValidHash', () => {
+    vi.stubEnv('HASH_STRONG_NUMBER', '6');
+    const hash = generateHash();
+    expect(isValidHash(hash)).toBe(true);
+    vi.unstubAllEnvs();
   });
 });
