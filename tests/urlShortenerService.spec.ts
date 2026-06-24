@@ -53,6 +53,60 @@ describe('UrlShortenerService', () => {
     });
   });
 
+  describe('url analytics updated', () => {
+    let originalUrl: string;
+    let hash: string;
+
+    test.beforeEach(async () => {
+      originalUrl = 'https://google.com';
+      hash = 'abc123';
+      await repo.create(originalUrl, hash);
+    });
+
+    test.afterEach(() => {
+      vi.resetAllMocks();
+      repo.reset();
+    });
+
+    test('should increment click count when resolving a shortened URL', async () => {
+      const incrementClicksSpy = vi.spyOn(repo, 'incrementClicks');
+      await service.resolveShortenedUrl(hash);
+      expect(incrementClicksSpy).toHaveBeenCalledWith(hash);
+    });
+
+    test('should not increment click count when resolving an invalid hash', async () => {
+      const incrementClicksSpy = vi.spyOn(repo, 'incrementClicks');
+      await expect(service.resolveShortenedUrl('invalidHash')).rejects.toThrow(
+        'URL not found',
+      );
+      expect(incrementClicksSpy).not.toHaveBeenCalled();
+    });
+
+    test('should update lastAccessed timestamp when resolving a shortened URL', async () => {
+      const recordBefore = await repo.findByHash(hash);
+      expect(recordBefore?.lastAccessed).toBeNull();
+
+      await service.resolveShortenedUrl(hash);
+
+      const recordAfter = await repo.findByHash(hash);
+      expect(recordAfter?.lastAccessed).not.toBeNull();
+    });
+
+    test('should update lastAccessed each time the shortened URL is resolved', async () => {
+      await service.resolveShortenedUrl(hash);
+      const firstAccess = (await repo.findByHash(hash))?.lastAccessed;
+
+      // Wait for a short duration to ensure a different timestamp
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      await service.resolveShortenedUrl(hash);
+      const secondAccess = (await repo.findByHash(hash))?.lastAccessed;
+
+      expect(secondAccess).not.toEqual(firstAccess);
+      expect(secondAccess!.getTime()).toBeGreaterThan(firstAccess!.getTime());
+    });
+  });
+
   test('should throw after max hash collisions', async () => {
     const repo = {
       findByOriginalUrl: vi.fn().mockResolvedValue(null),

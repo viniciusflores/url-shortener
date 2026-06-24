@@ -19,9 +19,27 @@ export class MockUrlRepository implements IUrlRepository {
     const record: UrlRecord = {
       original_url: originalUrl,
       hashed_url: hashedUrl,
+      clicks: 0,
+      lastAccessed: null,
     };
     this.databaseInMemory.push(record);
     return record;
+  }
+
+  async incrementClicks(hash: string): Promise<void> {
+    const record = this.databaseInMemory.find(
+      (data) => data.hashed_url === hash,
+    );
+
+    if (!record) {
+      const prismaError = new Error('Record not found');
+      throw new Error(`Record with hash ${hash} not found`, {
+        cause: prismaError,
+      });
+    }
+
+    record.clicks += 1;
+    record.lastAccessed = new Date();
   }
 
   // Helper for tests: reset state of the in-memory database

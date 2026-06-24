@@ -14,8 +14,10 @@ datasource db {
 }
 
 model UrlShortener {
-  original_url String   @unique
-  hashed_url   String   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  original_url String    @unique
+  hashed_url   String    @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  clicks       Int       @default(0)
+  lastAccessed DateTime?
 }

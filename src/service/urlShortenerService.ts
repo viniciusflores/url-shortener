@@ -42,6 +42,8 @@ export class UrlShortenerService {
     if (!record) {
       throw new Error('URL not found');
     }
+
+    await this.repo.incrementClicks(hash);
     return record.original_url;
   }
 }
