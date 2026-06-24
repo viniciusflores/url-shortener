@@ -5,6 +5,7 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: 'v8',
+      include: ['src/**/*.ts'],
     },
     exclude: ['node_modules', 'dist', 'e2e'],
   },
