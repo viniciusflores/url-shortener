@@ -21,3 +21,9 @@ model UrlShortener {
   clicks       Int       @default(0)
   lastAccessed DateTime?
 }
+
+model User {
+  id              String @id @default(uuid())
+  email           String @unique
+  password_hashed String
+}
