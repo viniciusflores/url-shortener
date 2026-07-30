@@ -13,7 +13,4 @@ const generateHash = (): string => {
   return crypto.randomBytes(byteCount).toString('base64').replace(/\//g, '1');
 };
 
-const HASH_PATTERN = /^[A-Za-z0-9+1=]{3,}$/;
-const isValidHash = (hash: string): boolean => HASH_PATTERN.test(hash);
-
-export { generateHash, isValidHash, HASH_PATTERN };
+export { generateHash };

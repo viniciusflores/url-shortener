@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaUrlRepository } from '../repositories/prisma/prismaUrlRepository';
-import { UrlShortenerService } from '../service/urlShortenerService';
+import { UrlShortenerService } from '../services/urlShortenerService';
 
 const { BASE_URL } = process.env;
 
@@ -60,4 +60,49 @@ const createUrlShortener = async (
   }
 };
 
-export { createUrlShortener, getUrlShortenerByHash };
+const createCustomUrlShortener = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  const { original_url, custom_alias } = req.body;
+  const { userId, email } = req.user!;
+  if (!original_url) {
+    return res
+      .status(400)
+      .send('Bad Request: Absence of original_url parameter');
+  }
+
+  if (!custom_alias) {
+    return res
+      .status(400)
+      .send('Bad Request: Absence of custom_alias parameter');
+  }
+
+  if (!userId || !email) {
+    return res.status(506).send('Internal Server Error: request props');
+  }
+
+  try {
+    const shortened_url = await service.shorten(
+      original_url,
+      BASE_URL!,
+      custom_alias,
+      userId,
+    );
+    return res.json({ shortened_url });
+  } catch (err: any) {
+    if (err.message === 'Missing URL') {
+      return res
+        .status(400)
+        .send('Bad Request: Absence of original_url parameter');
+    }
+    if (err.message === 'Invalid URL') {
+      return res
+        .status(400)
+        .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
+    }
+    throw err;
+  }
+};
+
+export { createUrlShortener, getUrlShortenerByHash, createCustomUrlShortener };

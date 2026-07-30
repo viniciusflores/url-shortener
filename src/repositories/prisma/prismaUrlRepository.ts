@@ -7,7 +7,7 @@ const prisma = new PrismaClient({ adapter });
 
 export class PrismaUrlRepository implements IUrlRepository {
   async findByOriginalUrl(url: string): Promise<UrlRecord | null> {
-    const data = await prisma.urlShortener.findUnique({
+    const data = await prisma.urlShortener.findFirst({
       where: {
         original_url: url,
       },
@@ -24,11 +24,43 @@ export class PrismaUrlRepository implements IUrlRepository {
 
     return data;
   }
-  async create(originalUrl: string, hashedUrl: string): Promise<UrlRecord> {
+
+  async findByCustomHash(custom_alias: string): Promise<UrlRecord | null> {
+    const data = await prisma.urlShortener.findFirst({
+      where: {
+        hashed_url: custom_alias,
+        userId: {
+          not: null,
+        },
+      },
+    });
+    return data;
+  }
+
+  async createRandom(
+    originalUrl: string,
+    hashedUrl: string,
+  ): Promise<UrlRecord> {
     const data = await prisma.urlShortener.create({
       data: {
         original_url: originalUrl,
         hashed_url: hashedUrl,
+      },
+    });
+
+    return data;
+  }
+
+  async createCustom(
+    originalUrl: string,
+    custom_alias: string,
+    user_id: string,
+  ): Promise<UrlRecord> {
+    const data = await prisma.urlShortener.create({
+      data: {
+        original_url: originalUrl,
+        hashed_url: custom_alias,
+        userId: user_id,
       },
     });
 

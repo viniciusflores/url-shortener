@@ -22,7 +22,7 @@ vi.mock('../src/service/urlShortenerService', () => ({
   },
 }));
 
-import app from '../src/app';
+import app from '../../src/app';
 
 describe('urlShortenerController', () => {
   beforeEach(() => {
