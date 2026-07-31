@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaUrlRepository } from '../repositories/prisma/prismaUrlRepository';
 import { UrlShortenerService } from '../services/urlShortenerService';
+import { logger } from '../lib/logger/winston';
 
 const { BASE_URL } = process.env;
 
@@ -21,12 +22,14 @@ const getUrlShortenerByHash = async (
     if (!originalUrl) {
       return res.status(404).send('Not Found');
     }
+
     return res.redirect(originalUrl);
   } catch (err: any) {
     if (err.message === 'URL not found') {
       return res.status(404).send('Not Found');
     }
-    throw err;
+    logger.error('Error resolving URL:', { error: err, hash });
+    return res.status(500).send('Internal Server Error');
   }
 };
 
@@ -56,7 +59,8 @@ const createUrlShortener = async (
         .status(400)
         .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
     }
-    throw err;
+    logger.error('Error creating shortened URL:', { error: err, original_url });
+    return res.status(500).send('Internal Server Error');
   }
 };
 
@@ -66,6 +70,7 @@ const createCustomUrlShortener = async (
 ): Promise<any> => {
   const { original_url, custom_alias } = req.body;
   const { userId, email } = req.user!;
+
   if (!original_url) {
     return res
       .status(400)
@@ -101,7 +106,12 @@ const createCustomUrlShortener = async (
         .status(400)
         .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
     }
-    throw err;
+    logger.error('Error creating custom shortened URL:', {
+      error: err,
+      original_url,
+      custom_alias,
+    });
+    return res.status(500).send('Internal Server Error');
   }
 };
 

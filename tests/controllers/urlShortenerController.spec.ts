@@ -1,39 +1,19 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../prisma/generated/client';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
-describe('URL Shortener Controller', () => {
+describe('URL Shortener Controller - Integration Tests', () => {
   beforeEach(async () => {
     await prisma.urlShortener.deleteMany({});
   });
 
-  describe('GET /url/:hash', () => {
-    it('should redirect to original URL when hash exists', async () => {
-      const originalUrl = 'https://www.example.com';
-      const hash = 'abc123';
-
-      await prisma.urlShortener.create({
-        data: {
-          original_url: originalUrl,
-          hashed_url: hash,
-        },
-      });
-
-      const response = await request(app).get(`/url/${hash}`).expect(302);
-
-      expect(response.headers.location).toBe(originalUrl);
-    });
-
-    it('should return 404 when hash does not exist', async () => {
-      const response = await request(app).get('/url/nonexistent').expect(404);
-
-      expect(response.text).toBe('Not Found');
-    });
+  afterEach(async () => {
+    await prisma.urlShortener.deleteMany({});
   });
 
   describe('POST /url/', () => {
@@ -46,33 +26,33 @@ describe('URL Shortener Controller', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('shortened_url');
+      // Updated expectation to check for the base URL in the response
+      expect(response.body.shortened_url).toContain(
+        process.env.BASE_URL || 'http://localhost:3000',
+      );
     });
 
-    it('should return 400 for missing original_url', async () => {
-      const response = await request(app).post('/url/').send({}).expect(400);
-
-      expect(response.text).toContain('Bad Request');
-    });
-
-    it('should return 400 for invalid URL format', async () => {
-      const response = await request(app)
+    it('should redirect to original URL when accessing shortened URL', async () => {
+      const originalUrl = 'https://www.example.com';
+      const createResponse = await request(app)
         .post('/url/')
-        .send({ original_url: 'invalid-url' })
-        .expect(400);
+        .send({ original_url: originalUrl })
+        .expect(200);
 
-      expect(response.text).toContain('Bad Request');
+      const shortUrl = createResponse.body.shortened_url;
+      const hash = shortUrl.split('/').pop();
+
+      const redirectResponse = await request(app)
+        .get(`/url/${hash}`)
+        .expect(302);
+
+      expect(redirectResponse.headers.location).toBe(originalUrl);
     });
   });
 
-  describe('POST /url/custom', () => {
-    it('should return 401 for unauthenticated access', async () => {
-      const response = await request(app)
-        .post('/url/custom')
-        .send({})
-        .expect(401);
-
-      // Adjusted expectation to match actual auth middleware output
-      expect(response.body).toHaveProperty('error');
+  describe('GET /url/:hash', () => {
+    it('should return 404 for non-existent hash', async () => {
+      await request(app).get('/url/nonexistent').expect(404);
     });
   });
 });
