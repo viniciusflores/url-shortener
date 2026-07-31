@@ -1,8 +1,15 @@
+// vitest.config.ts
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
     testTimeout: 5000,
+    coverage: {
+      enabled: true,
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+    },
+    exclude: ['node_modules', 'dist', 'e2e', 'tests/__mock__'],
     projects: [
       {
         test: {
@@ -22,25 +29,14 @@ export default defineConfig({
           include: ['tests/middlewares/**/*.{test,spec}.ts'],
         },
       },
-      // {
-      //   test: {
-      //     name: 'controllers',
-      //     include: ['tests/controller/**/*.{test,spec}.ts'],
-      //   },
-      // },
-    ],
-
-    coverage: {
-      enabled: true,
-      provider: 'v8',
-      include: ['src/**/*.ts'],
-    },
-    exclude: [
-      'node_modules',
-      'dist',
-      'e2e',
-      'tests/__mock__',
-      'tests/controllers/**/*.{test,spec}.ts',
+      {
+        test: {
+          name: 'controllers',
+          include: ['tests/controllers/**/*.{test,spec}.ts'],
+          setupFiles: ['./tests/setup-db.ts'],
+          fileParallelism: false,
+        },
+      },
     ],
   },
 });

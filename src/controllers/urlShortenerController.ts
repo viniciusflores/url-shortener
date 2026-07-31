@@ -79,7 +79,7 @@ const createCustomUrlShortener = async (
   }
 
   if (!userId || !email) {
-    return res.status(506).send('Internal Server Error: request props');
+    return res.status(401).send('Unauthorized: Invalid user context');
   }
 
   try {

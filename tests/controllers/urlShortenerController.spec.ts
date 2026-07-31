@@ -1,79 +1,78 @@
-import { vi, describe, test, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
-
-const { mockShorten, mockResolveShortenedUrl } = vi.hoisted(() => {
-  process.env.BASE_URL = 'http://localhost:3000';
-  return {
-    mockShorten: vi.fn(),
-    mockResolveShortenedUrl: vi.fn(),
-  };
-});
-
-vi.mock('../src/repositories/prisma/prismaUrlRepository', () => ({
-  PrismaUrlRepository: vi.fn(),
-}));
-
-vi.mock('../src/service/urlShortenerService', () => ({
-  UrlShortenerService: function UrlShortenerService() {
-    return {
-      shorten: mockShorten,
-      resolveShortenedUrl: mockResolveShortenedUrl,
-    };
-  },
-}));
-
 import app from '../../src/app';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../../prisma/generated/client';
 
-describe('urlShortenerController', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
+
+describe('URL Shortener Controller', () => {
+  beforeEach(async () => {
+    await prisma.urlShortener.deleteMany({});
   });
 
   describe('GET /url/:hash', () => {
-    test('redirects to original_url when hash is found', async () => {
-      mockResolveShortenedUrl.mockResolvedValue('https://google.com');
+    it('should redirect to original URL when hash exists', async () => {
+      const originalUrl = 'https://www.example.com';
+      const hash = 'abc123';
 
-      const res = await request(app).get('/url/abc123');
+      await prisma.urlShortener.create({
+        data: {
+          original_url: originalUrl,
+          hashed_url: hash,
+        },
+      });
 
-      expect(res.status).toBe(302);
-      expect(res.headers.location).toBe('https://google.com');
+      const response = await request(app).get(`/url/${hash}`).expect(302);
+
+      expect(response.headers.location).toBe(originalUrl);
     });
 
-    test('returns 404 when hash is not found', async () => {
-      mockResolveShortenedUrl.mockRejectedValue(new Error('URL not found'));
+    it('should return 404 when hash does not exist', async () => {
+      const response = await request(app).get('/url/nonexistent').expect(404);
 
-      const res = await request(app).get('/url/notexist');
-
-      expect(res.status).toBe(404);
+      expect(response.text).toBe('Not Found');
     });
   });
 
-  describe('POST /url', () => {
-    test('returns 400 when original_url is missing', async () => {
-      const res = await request(app).post('/url/').send({});
+  describe('POST /url/', () => {
+    it('should create a shortened URL for valid input', async () => {
+      const originalUrl = 'https://www.example.com';
 
-      expect(res.status).toBe(400);
+      const response = await request(app)
+        .post('/url/')
+        .send({ original_url: originalUrl })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('shortened_url');
     });
 
-    test('returns 400 when original_url is not a valid URL', async () => {
-      mockShorten.mockRejectedValue(new Error('Invalid URL'));
+    it('should return 400 for missing original_url', async () => {
+      const response = await request(app).post('/url/').send({}).expect(400);
 
-      const res = await request(app)
-        .post('/url/')
-        .send({ original_url: 'not-a-url' });
-
-      expect(res.status).toBe(400);
+      expect(response.text).toContain('Bad Request');
     });
 
-    test('returns shortened_url for a valid URL', async () => {
-      mockShorten.mockResolvedValue('http://localhost:3000/url/abc123');
-
-      const res = await request(app)
+    it('should return 400 for invalid URL format', async () => {
+      const response = await request(app)
         .post('/url/')
-        .send({ original_url: 'https://google.com' });
+        .send({ original_url: 'invalid-url' })
+        .expect(400);
 
-      expect(res.status).toBe(200);
-      expect(res.body.shortened_url).toBe('http://localhost:3000/url/abc123');
+      expect(response.text).toContain('Bad Request');
+    });
+  });
+
+  describe('POST /url/custom', () => {
+    it('should return 401 for unauthenticated access', async () => {
+      const response = await request(app)
+        .post('/url/custom')
+        .send({})
+        .expect(401);
+
+      // Adjusted expectation to match actual auth middleware output
+      expect(response.body).toHaveProperty('error');
     });
   });
 });

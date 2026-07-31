@@ -15,6 +15,7 @@
     "migrate": "prisma migrate dev",
     "test": "vitest",
     "test:service": "vitest --project=services",
+    "test:controllers": "vitest run --project=controllers",
     "setup": "yarn; prisma migrate deploy && prisma generate",
     "prepare": "husky"
   },
