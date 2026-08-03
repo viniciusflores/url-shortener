@@ -1,28 +1,10 @@
-import { expect } from 'chai';
 import got from 'got';
+import { expect, describe, test } from 'vitest';
 
 const { BASE_URL } = process.env;
 
-describe('Happy Path test', function () {
-  it('should be possible to create a new shortener url', async function () {
-    const timestamp = Date.now();
-    const original_url = `https://www.google.com/?q=${timestamp}`;
-
-    const response = await got.post(`${BASE_URL}/url`, {
-      json: {
-        original_url,
-      },
-    });
-
-    const { statusCode } = response;
-    const body = JSON.parse(response.body) as { shortened_url: string };
-
-    expect(statusCode).to.equal(200);
-    expect(body).to.have.property('shortened_url');
-    expect(body.shortened_url).that.is.a('string');
-  });
-
-  it('should be possible to get shortener url created', async function () {
+describe('Retrieve URL happy path tests', function () {
+  test('should be possible to get shortener url created', async function () {
     const timestamp = Date.now();
     const original_url = `https://www.google.com/?q=${timestamp}`;
 

@@ -149,9 +149,7 @@ describe('User Auth Controller', () => {
       .post('/auth/register')
       .send({ username: username, password: password });
 
-    // The current implementation returns 500 for duplicate users
-    // You might want to modify this behavior to return a more specific error code
-    expect(secondResponse.status).toBe(500);
+    expect(secondResponse.status).toBe(409);
   });
 
   it('should properly hash passwords during registration', async () => {

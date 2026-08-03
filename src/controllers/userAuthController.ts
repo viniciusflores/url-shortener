@@ -11,11 +11,20 @@ const registerUser = async (req: Request, res: Response) => {
     return res.status(400).send('Bad Request');
   }
 
-  const name = await service.register(username, password);
+  try {
+    const name = await service.register(username, password);
 
-  if (name != null) {
-    return res.status(200).send(`Success auth register to: ${name}`);
-  } else {
+    if (name != null) {
+      return res.status(200).send(`Success auth register to: ${name}`);
+    } else {
+      return res.status(500).send('Internal Server Error');
+    }
+  } catch (error: any) {
+    // Handle duplicate user error
+    if (error.message && error.message.includes('already exists')) {
+      return res.status(409).send('User already exists');
+    }
+    // Re-throw other errors for global error handler
     return res.status(500).send('Internal Server Error');
   }
 };

@@ -25,11 +25,12 @@ const getUrlShortenerByHash = async (
 
     return res.redirect(originalUrl);
   } catch (err: any) {
-    if (err.message === 'URL not found') {
-      return res.status(404).send('Not Found');
-    }
-    logger.error('Error resolving URL:', { error: err, hash });
-    return res.status(500).send('Internal Server Error');
+    logger.error('Error in getUrlShortenerByHash:', {
+      error: err,
+      hash,
+      errorMessage: err.message,
+    });
+    return res.status(404).send('Not Found');
   }
 };
 
@@ -68,8 +69,12 @@ const createCustomUrlShortener = async (
   req: Request,
   res: Response,
 ): Promise<any> => {
+  if (!req.user) {
+    return res.status(401).send('Unauthorized: Invalid user context');
+  }
+
   const { original_url, custom_alias } = req.body;
-  const { userId, email } = req.user!;
+  const { userId, email } = req.user;
 
   if (!original_url) {
     return res

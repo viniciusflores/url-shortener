@@ -5,19 +5,16 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "test": "tsx node_modules/mocha/bin/mocha.js -r dotenv/config -r utils/hooks.ts \"test/**/*.ts\""
+    "test": "vitest"
   },
   "dependencies": {
-    "chai": "^6.2.2",
     "dotenv": "^17.4.2",
-    "got": "^15.0.6",
-    "mocha": "^11.7.6"
+    "got": "^15.0.6"
   },
   "devDependencies": {
-    "@types/chai": "^5.2.3",
-    "@types/mocha": "^10.0.10",
     "@types/node": "^26.0.0",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }

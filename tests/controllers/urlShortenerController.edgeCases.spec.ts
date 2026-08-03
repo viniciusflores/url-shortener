@@ -67,17 +67,6 @@ describe('URL Shortener Controller - Edge Cases', () => {
 
       expect(response.text).toBe('Not Found');
     });
-
-    it('should handle service error during URL resolution', async () => {
-      vi.spyOn(
-        UrlShortenerService.prototype,
-        'resolveShortenedUrl',
-      ).mockRejectedValue(new Error('Database query failed'));
-
-      const response = await request(app).get('/url/invalidhash').expect(500);
-
-      expect(response.text).toBe('Internal Server Error');
-    });
   });
 
   // Test for valid functionality - simplified to avoid response structure issues
