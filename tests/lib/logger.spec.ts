@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { logger } from '../src/utils/logger';
+import { logger } from '../../src/lib/logger/winston';
 import { transports } from 'winston';
 
 describe('logger', () => {

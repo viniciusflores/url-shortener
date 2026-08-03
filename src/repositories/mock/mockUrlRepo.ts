@@ -15,12 +15,40 @@ export class MockUrlRepository implements IUrlRepository {
     );
   }
 
-  async create(originalUrl: string, hashedUrl: string): Promise<UrlRecord> {
+  async findByCustomHash(custom_alias: string): Promise<UrlRecord | null> {
+    return (
+      this.databaseInMemory.find(
+        (data) => data.hashed_url === custom_alias && data.userId !== null,
+      ) ?? null
+    );
+  }
+
+  async createRandom(
+    originalUrl: string,
+    hashedUrl: string,
+  ): Promise<UrlRecord> {
     const record: UrlRecord = {
       original_url: originalUrl,
       hashed_url: hashedUrl,
       clicks: 0,
       lastAccessed: null,
+      userId: null,
+    };
+    this.databaseInMemory.push(record);
+    return record;
+  }
+
+  async createCustom(
+    originalUrl: string,
+    custom_alias: string,
+    user_id: string,
+  ): Promise<UrlRecord> {
+    const record: UrlRecord = {
+      original_url: originalUrl,
+      hashed_url: custom_alias,
+      clicks: 0,
+      lastAccessed: null,
+      userId: user_id,
     };
     this.databaseInMemory.push(record);
     return record;

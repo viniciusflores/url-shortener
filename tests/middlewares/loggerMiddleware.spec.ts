@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from 'vitest';
-import { loggerMiddleware } from '../src/middlewares/loggerMiddleware';
-import { logger } from '../src/utils/logger';
+import { loggerMiddleware } from '../../src/middlewares/loggerMiddleware';
+import { logger } from '../../src/lib/logger/winston';
 import { EventEmitter } from 'node:events';
 
 const makeMocks = (method = 'GET', url = '/test', statusCode = 200) => {

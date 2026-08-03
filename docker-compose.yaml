@@ -7,10 +7,24 @@ services:
       POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
       POSTGRES_DB: ${DB_POSTGRES_DB}
     ports:
-      - 5432:${DB_POSTGRES_PORT}
+      - ${DB_POSTGRES_PORT}:5432
     volumes:
       - db:/var/lib/postgresql
 
+  db-test:
+    image: ${DB_POSTGRES_IMAGE_NAME}
+    container_name: url-shortener-postgres-test
+    environment:
+      POSTGRES_USER: ${DB_POSTGRES_USER_TEST}
+      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD_TEST}
+      POSTGRES_DB: ${DB_POSTGRES_DB_TEST}
+    ports:
+      - ${DB_POSTGRES_PORT_TEST}:5432
+    volumes:
+      - db-test:/var/lib/postgresql
+
 volumes:
   db:
+    driver: local
+  db-test:
     driver: local

@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from 'vitest';
-import { errorHandler } from '../src/middlewares/errorHandler';
-import { logger } from '../src/utils/logger';
+import { errorHandler } from '../../src/middlewares/errorHandler';
+import { logger } from '../../src/lib/logger/winston';
 
 const makeMocks = () => {
   const req = {} as any;

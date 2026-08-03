@@ -14,20 +14,26 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "test": "vitest",
+    "test:service": "vitest --project=services",
+    "test:controllers": "vitest run --project=controllers",
     "setup": "yarn; prisma migrate deploy && prisma generate",
     "prepare": "husky"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "jsonwebtoken": "^9.0.3",
     "winston": "^3.19.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.9.3",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.8",

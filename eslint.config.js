@@ -16,4 +16,9 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  // Ignore prisma files completely
+  {
+    files: ['**/*.prisma'],
+    ignores: ['**/*.prisma'],
+  },
 );
