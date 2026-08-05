@@ -40,7 +40,6 @@ describe('Shorten URL validation tests', function () {
       });
     } catch (error: any) {
       expect(error.response.statusCode).toBe(400);
-      // Updated to match actual error message
       expect(error.response.body).toContain(
         'Bad Request: Absence of original_url parameter',
       );
@@ -56,8 +55,8 @@ describe('Shorten URL validation tests', function () {
       });
     } catch (error: any) {
       expect(error.response.statusCode).toBe(400);
-      // Updated to match actual error message
-      expect(error.response.body).toContain('Bad Request: Invalid URL');
+      const errorMessage = JSON.parse(error.response.body).message;
+      expect(errorMessage).toBe('Invalid URL');
     }
   });
 
