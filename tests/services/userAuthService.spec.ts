@@ -50,7 +50,7 @@ describe('UserAuthService', () => {
 
     test('should throw an error for missing email or password', async () => {
       await expect(service.register('', 'password')).rejects.toThrow(
-        'Failed to register user without email||password',
+        'Missing email or password',
       );
     });
 
@@ -85,13 +85,13 @@ describe('UserAuthService', () => {
 
     test('should throw an error for missing password', async () => {
       await expect(service.retrieve('test@example.com', '')).rejects.toThrow(
-        'Failed to retrieve user without email||password',
+        'Missing email or password',
       );
     });
 
     test('should throw an error for missing email', async () => {
       await expect(service.retrieve('', 'password')).rejects.toThrow(
-        'Failed to retrieve user without email||password',
+        'Missing email or password',
       );
     });
 

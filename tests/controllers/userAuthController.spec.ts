@@ -45,7 +45,8 @@ describe('User Auth Controller', () => {
       .send({ password: password });
 
     expect(response.status).toBe(400);
-    expect(response.text).toBe('Bad Request');
+    const errorMessage = JSON.parse(response.text).message;
+    expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
   it('should return 400 for registration with missing password', async () => {
@@ -54,7 +55,8 @@ describe('User Auth Controller', () => {
       .send({ username: username });
 
     expect(response.status).toBe(400);
-    expect(response.text).toBe('Bad Request');
+    const errorMessage = JSON.parse(response.text).message;
+    expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
   it('should return 400 for registration with empty username', async () => {
@@ -63,7 +65,8 @@ describe('User Auth Controller', () => {
       .send({ username: '', password: password });
 
     expect(response.status).toBe(400);
-    expect(response.text).toBe('Bad Request');
+    const errorMessage = JSON.parse(response.text).message;
+    expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
   it('should return 400 for registration with empty password', async () => {
@@ -72,7 +75,8 @@ describe('User Auth Controller', () => {
       .send({ username: username, password: '' });
 
     expect(response.status).toBe(400);
-    expect(response.text).toBe('Bad Request');
+    const errorMessage = JSON.parse(response.text).message;
+    expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
   it('should be possible to login a user', async () => {
@@ -98,7 +102,8 @@ describe('User Auth Controller', () => {
       .send({ password: password });
 
     expect(response.status).toBe(400);
-    expect(response.text).toBe('Bad Request');
+    const errorMessage = JSON.parse(response.text).message;
+    expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
   it('should return 400 for login with missing password', async () => {
@@ -107,7 +112,8 @@ describe('User Auth Controller', () => {
       .send({ username: username });
 
     expect(response.status).toBe(400);
-    expect(response.text).toBe('Bad Request');
+    const errorMessage = JSON.parse(response.text).message;
+    expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
   it('should return 500 for login with non-existent user', async () => {
@@ -115,7 +121,7 @@ describe('User Auth Controller', () => {
       .post('/auth/login')
       .send({ username: 'nonexistent@gmail.com', password: password });
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('message');
   });
 
@@ -132,7 +138,7 @@ describe('User Auth Controller', () => {
       .post('/auth/login')
       .send({ username: username, password: 'wrongpassword' });
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('message');
   });
 

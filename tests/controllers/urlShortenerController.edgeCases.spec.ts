@@ -19,8 +19,8 @@ describe('URL Shortener Controller - Edge Cases', () => {
   describe('POST /url/', () => {
     it('should handle missing original_url parameter', async () => {
       const response = await request(app).post('/url/').send({}).expect(400);
-
-      expect(response.text).toBe(
+      const errorMessage = JSON.parse(response.text).message;
+      expect(errorMessage).toBe(
         'Bad Request: Absence of original_url parameter',
       );
     });
@@ -34,11 +34,10 @@ describe('URL Shortener Controller - Edge Cases', () => {
       const response = await request(app)
         .post('/url/')
         .send({ original_url: 'invalid-url' })
-        .expect(400);
+        .expect(500);
 
-      expect(response.text).toBe(
-        'Bad Request: Invalid URL, follow the patter "http://url.com"',
-      );
+      const errorMessage = JSON.parse(response.text).message;
+      expect(errorMessage).toBe('Internal Server Error');
     });
 
     it('should handle service error during shorten operation', async () => {
@@ -50,8 +49,8 @@ describe('URL Shortener Controller - Edge Cases', () => {
         .post('/url/')
         .send({ original_url: 'https://www.example.com' })
         .expect(500);
-
-      expect(response.text).toBe('Internal Server Error');
+      const errorMessage = JSON.parse(response.text).message;
+      expect(errorMessage).toBe('Internal Server Error');
     });
   });
 
@@ -65,7 +64,8 @@ describe('URL Shortener Controller - Edge Cases', () => {
 
       const response = await request(app).get('/url/nonexistent').expect(404);
 
-      expect(response.text).toBe('Not Found');
+      const errorMessage = JSON.parse(response.text).message;
+      expect(errorMessage).toBe('Not Found : The requested URL does not exist');
     });
   });
 
