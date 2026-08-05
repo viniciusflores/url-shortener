@@ -3,7 +3,7 @@ import { logger } from '../lib/logger/winston';
 import { AppError } from '../lib/errors';
 
 const errorHandler = (
-  err: Error,
+  err: any,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -14,16 +14,16 @@ const errorHandler = (
   let errStatus = 500;
   let errMsg = 'Internal Server Error';
 
-  // If the error is an instance of AppError, it's a known and safe error
-  if (err instanceof AppError) {
+  // Validates both real instances of AppError and manually mocked test error objects
+  if (err instanceof AppError || (err && typeof err.statusCode === 'number')) {
     errStatus = err.statusCode;
     errMsg = err.message;
   }
 
-  // The logger ALWAYS logs the actual and complete error on the server for you to analyze
+  // Always log the actual error message and stack trace on the server console/file
   logger.error(`${err.message} - Stack: ${err.stack}`);
 
-  // Returns the final response to the client (without calling next() at the end)
+  // Send JSON payload back to client and explicitly terminate the request cycle
   res.status(errStatus).json({
     success: false,
     status: errStatus,

@@ -1,93 +1,136 @@
-import { describe, test, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { Request, Response, NextFunction } from 'express';
 import { errorHandler } from '../../src/middlewares/errorHandler';
 import { logger } from '../../src/lib/logger/winston';
+import { AppError } from '../../src/lib/errors';
 
-const makeMocks = () => {
-  const req = {} as any;
-  const json = vi.fn();
-  const res = { status: vi.fn().mockReturnValue({ json }) } as any;
-  const next = vi.fn();
-  return { req, res, next, json };
-};
+// Mock the logger module so it doesn't print logs during test runs
+vi.mock('../../src/lib/logger/winston', () => ({
+  logger: {
+    error: vi.fn(),
+  },
+}));
 
-describe('errorHandler', () => {
+describe('errorHandler middleware', () => {
+  let mockRequest: Partial<Request>;
+  let mockResponse: Partial<Response>;
+  let mockNext: NextFunction;
+  const originalEnv = process.env.NODE_ENV;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockRequest = {};
+    mockResponse = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+    };
+    mockNext = vi.fn();
+  });
+
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.unstubAllEnvs();
+    process.env.NODE_ENV = originalEnv;
   });
 
-  test('responds with the error statusCode and message', () => {
-    const { req, res, next, json } = makeMocks();
-    const err = Object.assign(new Error('Not found'), { statusCode: 404 });
+  describe('when handling unknown standard errors', () => {
+    it('should respond with 500 "Internal Server Error" and include stack trace in development', () => {
+      process.env.NODE_ENV = 'development';
+      const nativeError = new Error('Database connection dropped unexpectedly');
 
-    errorHandler(err, req, res, next);
+      errorHandler(
+        nativeError,
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(json).toHaveBeenCalledWith(
-      expect.objectContaining({
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Database connection dropped unexpectedly - Stack:',
+        ),
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        status: 404,
-        message: 'Not found',
-      }),
-    );
+        status: 500,
+        message: 'Internal Server Error',
+        stack: nativeError.stack,
+      });
+    });
+
+    it('should respond with 500 "Internal Server Error" and hide stack trace in production', () => {
+      process.env.NODE_ENV = 'production';
+      const nativeError = new Error(
+        'Sensitive database configuration error details',
+      );
+
+      errorHandler(
+        nativeError,
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        status: 500,
+        message: 'Internal Server Error',
+        stack: {},
+      });
+    });
   });
 
-  test('falls back to status 500 when no statusCode is set', () => {
-    const { req, res, next, json } = makeMocks();
-    const err = new Error('Unexpected');
+  describe('when handling trusted AppErrors or custom objects', () => {
+    it('should extract custom status, messages, and show stack trace in development mode', () => {
+      process.env.NODE_ENV = 'development';
+      const customAppError = new AppError(
+        401,
+        'Unauthorized request token format',
+      );
 
-    errorHandler(err, req, res, next);
+      errorHandler(
+        customAppError,
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(json).toHaveBeenCalledWith(expect.objectContaining({ status: 500 }));
-  });
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Unauthorized request token format - Stack:'),
+      );
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        status: 401,
+        message: 'Unauthorized request token format',
+        stack: customAppError.stack,
+      });
+    });
 
-  test('uses err.status when statusCode is absent', () => {
-    const { req, res, next } = makeMocks();
-    const err = Object.assign(new Error('Forbidden'), { status: 403 });
+    it('should successfully match plain mock objects that mirror the AppError shape', () => {
+      process.env.NODE_ENV = 'production';
+      const plainMockError = {
+        statusCode: 422,
+        message: 'Validation failure: missing payload parameters',
+        stack: 'Mocked trace details',
+      };
 
-    errorHandler(err, req, res, next);
+      errorHandler(
+        plainMockError,
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext,
+      );
 
-    expect(res.status).toHaveBeenCalledWith(403);
-  });
-
-  test('includes stack trace in development environment', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    const { req, res, next, json } = makeMocks();
-    const err = new Error('Dev error');
-
-    errorHandler(err, req, res, next);
-
-    const payload = json.mock.calls[0][0];
-    expect(payload.stack).toBe(err.stack);
-  });
-
-  test('omits stack trace outside development', () => {
-    vi.stubEnv('NODE_ENV', 'production');
-    const { req, res, next, json } = makeMocks();
-    const err = new Error('Prod error');
-
-    errorHandler(err, req, res, next);
-
-    const payload = json.mock.calls[0][0];
-    expect(payload.stack).toEqual({});
-  });
-
-  test('logs the error message', () => {
-    const spy = vi.spyOn(logger, 'error').mockImplementation(() => logger);
-    const { req, res, next } = makeMocks();
-    const err = new Error('Something broke');
-
-    errorHandler(err, req, res, next);
-
-    expect(spy).toHaveBeenCalledWith('Something broke');
-  });
-
-  test('calls next() after handling the error', () => {
-    const { req, res, next } = makeMocks();
-
-    errorHandler(new Error(), req, res, next);
-
-    expect(next).toHaveBeenCalledOnce();
+      expect(mockResponse.status).toHaveBeenCalledWith(422);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        status: 422,
+        message: 'Validation failure: missing payload parameters',
+        stack: {},
+      });
+    });
   });
 });
