@@ -1,6 +1,11 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { PrismaUrlRepository } from '../repositories/prisma/prismaUrlRepository';
 import { UrlShortenerService } from '../services/urlShortenerService';
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from '../lib/errors';
 import { logger } from '../lib/logger/winston';
 
 const service = new UrlShortenerService(new PrismaUrlRepository());
@@ -8,89 +13,83 @@ const service = new UrlShortenerService(new PrismaUrlRepository());
 const getUrlShortenerByHash = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<any> => {
-  const { hash } = req.params;
-
-  if (!hash || typeof hash !== 'string') {
-    return res.status(400).send('Bad Request');
-  }
-
   try {
+    const { hash } = req.params;
+    if (!hash || typeof hash !== 'string') {
+      throw new BadRequestError('Bad Request: Absence of hash parameter');
+    }
+
     const originalUrl = await service.resolveShortenedUrl(hash);
     if (!originalUrl) {
-      return res.status(404).send('Not Found');
+      throw new NotFoundError('Not Found : The requested URL does not exist');
     }
 
     return res.redirect(originalUrl);
   } catch (err: any) {
     logger.error('Error in getUrlShortenerByHash:', {
       error: err,
-      hash,
       errorMessage: err.message,
     });
-    return res.status(404).send('Not Found');
+    next(err);
   }
 };
 
 const createUrlShortener = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<any> => {
-  const { original_url } = req.body;
-
-  if (!original_url) {
-    return res
-      .status(400)
-      .send('Bad Request: Absence of original_url parameter');
-  }
-
   try {
+    const { original_url } = req.body;
+    if (!original_url) {
+      throw new BadRequestError(
+        'Bad Request: Absence of original_url parameter',
+      );
+    }
+
     const shortened_url = await service.shorten(original_url!);
+
     return res.json({ shortened_url });
   } catch (err: any) {
-    if (err.message === 'Missing URL') {
-      return res
-        .status(400)
-        .send('Bad Request: Absence of original_url parameter');
-    }
-    if (err.message === 'Invalid URL') {
-      return res
-        .status(400)
-        .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
-    }
-    logger.error('Error creating shortened URL:', { error: err, original_url });
-    return res.status(500).send('Internal Server Error');
+    logger.error('Error creating shortened URL:', {
+      error: err,
+      errorMessage: err.message,
+    });
+    next(err);
   }
 };
 
 const createCustomUrlShortener = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<any> => {
-  if (!req.user) {
-    return res.status(401).send('Unauthorized: Invalid user context');
-  }
-
-  const { original_url, custom_alias } = req.body;
-  const { userId, email } = req.user;
-
-  if (!original_url) {
-    return res
-      .status(400)
-      .send('Bad Request: Absence of original_url parameter');
-  }
-
-  if (!custom_alias) {
-    return res
-      .status(400)
-      .send('Bad Request: Absence of custom_alias parameter');
-  }
-
-  if (!userId || !email) {
-    return res.status(401).send('Unauthorized: Invalid user context');
-  }
-
   try {
+    if (!req.user) {
+      throw new UnauthorizedError('Unauthorized: Invalid user context');
+    }
+
+    const { original_url, custom_alias } = req.body;
+    const { userId, email } = req.user;
+
+    if (!userId || !email) {
+      throw new UnauthorizedError('Unauthorized: Invalid user context');
+    }
+
+    if (!original_url) {
+      throw new BadRequestError(
+        'Bad Request: Absence of original_url parameter',
+      );
+    }
+
+    if (!custom_alias) {
+      throw new BadRequestError(
+        'Bad Request: Absence of custom_alias parameter',
+      );
+    }
+
     const shortened_url = await service.shorten(
       original_url,
       custom_alias,
@@ -98,28 +97,11 @@ const createCustomUrlShortener = async (
     );
     return res.json({ shortened_url });
   } catch (err: any) {
-    if (err.message === 'Missing URL') {
-      return res
-        .status(400)
-        .send('Bad Request: Absence of original_url parameter');
-    }
-    if (err.message === 'Invalid URL') {
-      return res
-        .status(400)
-        .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
-    }
-    if (err.message === 'Invalid custom alias') {
-      return res.status(400).send('Bad Request: Invalid custom alias');
-    }
-    if (err.message === 'Custom alias already taken') {
-      return res.status(409).send('Conflict: Custom alias already taken');
-    }
     logger.error('Error creating custom shortened URL:', {
       error: err,
-      original_url,
-      custom_alias,
+      errorMessage: err.message,
     });
-    return res.status(500).send('Internal Server Error');
+    next(err);
   }
 };
 

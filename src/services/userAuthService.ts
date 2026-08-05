@@ -2,27 +2,32 @@ import type { IUserRepository } from '../repositories/interfaces/userRepository'
 import { hashUserPassword, verifyUserPassword } from '../lib/crypto';
 import { signToken } from '../lib/jwt';
 import { validateEmail, isValidPassword } from '../lib/validators';
+import {
+  BadRequestError,
+  UnauthorizedError,
+  ConflictError,
+} from '../lib/errors';
 
 export class UserAuthService {
   constructor(private readonly repo: IUserRepository) {}
 
   async register(email: string, password: string): Promise<string> {
     if (!email || !password) {
-      throw new Error('Failed to register user without email||password');
+      throw new BadRequestError('Missing email or password');
     }
 
     if (!validateEmail(email)) {
-      throw new Error('Invalid email format');
+      throw new BadRequestError('Invalid email format');
     }
 
     if (!isValidPassword(password)) {
-      throw new Error('Password must be at least 6 characters long');
+      throw new BadRequestError('Password must be at least 6 characters long');
     }
 
     const alreadyExist = await this.repo.getByEmail(email);
 
     if (alreadyExist) {
-      throw new Error('User already exists');
+      throw new ConflictError('User already exists');
     }
 
     const hashed_password = await hashUserPassword(password);
@@ -34,12 +39,12 @@ export class UserAuthService {
 
   async retrieve(email: string, password: string): Promise<string> {
     if (!email || !password) {
-      throw new Error('Failed to retrieve user without email||password');
+      throw new BadRequestError('Missing email or password');
     }
 
     const user = await this.repo.getByEmail(email);
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedError('Invalid credentials');
     }
 
     const authentication = await verifyUserPassword(
@@ -47,7 +52,7 @@ export class UserAuthService {
       user.password_hashed,
     );
     if (!authentication) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedError('Invalid credentials');
     }
 
     const token = await signToken({ userId: user.id, email: user.email });

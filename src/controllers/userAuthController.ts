@@ -1,46 +1,67 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { UserAuthService } from '../services/userAuthService';
 import { PrismaUserRepository } from '../repositories/prisma/prismaUserRepository';
+import {
+  BadRequestError,
+  ConflictError,
+  UnauthorizedError,
+} from '../lib/errors';
+import { logger } from '../lib/logger/winston';
 
 const service = new UserAuthService(new PrismaUserRepository());
 
-const registerUser = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).send('Bad Request');
-  }
-
+const registerUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      throw new BadRequestError('Bad Request: Missing required fields');
+    }
+
     const name = await service.register(username, password);
 
     if (name != null) {
       return res.status(200).send(`Success auth register to: ${name}`);
     } else {
-      return res.status(500).send('Internal Server Error');
+      throw new ConflictError('Conflict: User registration failed');
     }
-  } catch (error: any) {
-    // Handle duplicate user error
-    if (error.message && error.message.includes('already exists')) {
-      return res.status(409).send('User already exists');
-    }
-    // Re-throw other errors for global error handler
-    return res.status(500).send('Internal Server Error');
+  } catch (err: any) {
+    logger.error('Error in registerUser:', {
+      error: err,
+      errorMessage: err.message,
+    });
+    next(err);
   }
 };
 
-const performLogin = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).send('Bad Request');
-  }
-
+const performLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      throw new BadRequestError('Bad Request: Missing required fields');
+    }
+
     const token = await service.retrieve(username, password);
-    return res.status(200).json({ token: token });
-  } catch (error) {
-    return res.status(500).json({ message: 'Error creating user', error });
+    if (token != null) {
+      return res.status(200).json({ token });
+    } else {
+      throw new UnauthorizedError('Unauthorized: Invalid credentials');
+    }
+  } catch (err: any) {
+    logger.error('Error in performLogin:', {
+      error: err,
+      errorMessage: err.message,
+    });
+    next(err);
   }
 };
 

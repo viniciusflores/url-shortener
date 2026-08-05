@@ -5,6 +5,7 @@ import {
   isValidCustomAlias,
 } from '../lib/validators';
 import { generateHash } from '../lib/crypto';
+import { AppError, BadRequestError, NotFoundError } from '../lib/errors';
 import { BASE_URL } from '../env';
 const MAX_ATTEMPTS = 20;
 
@@ -17,10 +18,10 @@ export class UrlShortenerService {
     userId?: string,
   ): Promise<string> {
     if (!originalUrl) {
-      throw new Error('Missing URL');
+      throw new BadRequestError('Missing URL');
     }
     if (!isValidURLToBeShortener(originalUrl)) {
-      throw new Error('Invalid URL');
+      throw new BadRequestError('Invalid URL');
     }
 
     if (customAlias !== undefined && userId !== undefined) {
@@ -30,16 +31,16 @@ export class UrlShortenerService {
         customAlias.trim() === '' ||
         !isValidCustomAlias(customAlias)
       ) {
-        throw new Error('Invalid custom alias');
+        throw new BadRequestError('Invalid custom alias');
       }
 
       if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-        throw new Error('Invalid user ID');
+        throw new BadRequestError('Invalid user ID');
       }
 
       const existingRecord = await this.repo.findByCustomHash(customAlias);
       if (existingRecord) {
-        throw new Error('Custom alias already taken');
+        throw new BadRequestError('Custom alias already taken');
       }
 
       return await this.handleCustomAlias(originalUrl, customAlias, userId);
@@ -50,12 +51,12 @@ export class UrlShortenerService {
 
   async resolveShortenedUrl(hash: string): Promise<string> {
     if (!hash || !isValidHash(hash)) {
-      throw new Error('Invalid hash');
+      throw new BadRequestError('Invalid hash format provided');
     }
 
     const record = await this.repo.findByHash(hash);
     if (!record) {
-      throw new Error('URL not found');
+      throw new NotFoundError('URL not found');
     }
 
     await this.repo.incrementClicks(hash);
@@ -69,7 +70,7 @@ export class UrlShortenerService {
   ): Promise<string> {
     const existingRecord = await this.repo.findByCustomHash(customAlias);
     if (existingRecord) {
-      throw new Error('Custom alias already taken');
+      throw new BadRequestError('Custom alias already taken');
     }
 
     await this.repo.createCustom(originalUrl, customAlias, userId);
@@ -93,6 +94,9 @@ export class UrlShortenerService {
       }
     }
 
-    throw new Error('Failed to generate unique hash after multiple attempts');
+    throw new AppError(
+      500,
+      'Failed to generate unique hash after multiple attempts',
+    );
   }
 }
