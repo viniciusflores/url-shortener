@@ -1,10 +1,12 @@
 import { describe, test, beforeEach, expect, afterEach, vi } from 'vitest';
 import { UrlShortenerService } from '../../src/services/urlShortenerService';
 import { MockUrlRepository } from '../../src/repositories/mock/mockUrlRepo';
+import { BASE_URL } from '../../src/env';
 
 describe('UrlShortenerService', () => {
   let service: UrlShortenerService;
   let repo: MockUrlRepository;
+  const baseUrl = BASE_URL;
 
   beforeEach(() => {
     repo = new MockUrlRepository();
@@ -19,15 +21,11 @@ describe('UrlShortenerService', () => {
   describe('shorten', () => {
     describe('url validation', () => {
       test('should throw an error for missing URL', async () => {
-        const baseUrl = 'https://my-shortener-app.com';
-        await expect(service.shorten('', baseUrl)).rejects.toThrow(
-          'Missing URL',
-        );
+        await expect(service.shorten('')).rejects.toThrow('Missing URL');
       });
 
       test('should throw an error for invalid URL', async () => {
-        const baseUrl = 'https://my-shortener-app.com';
-        await expect(service.shorten('invalid-url', baseUrl)).rejects.toThrow(
+        await expect(service.shorten('invalid-url')).rejects.toThrow(
           'Invalid URL',
         );
       });
@@ -38,12 +36,10 @@ describe('UrlShortenerService', () => {
     test('should be able to create a custom url with alias', async () => {
       const customAlias = 'my-custom-alias';
       const userId = 'user-123';
-      const baseUrl = 'https://my-shortener-app.com';
       const originalUrl = 'https://example.com';
 
       const shortenedUrl = await service.shorten(
         originalUrl,
-        baseUrl,
         customAlias,
         userId,
       );
@@ -60,12 +56,10 @@ describe('UrlShortenerService', () => {
     test('should not be able to create a custom url with alias already been taken', async () => {
       const customAlias = 'my-custom-alias';
       const userId = 'user-123';
-      const baseUrl = 'https://my-shortener-app.com';
       const originalUrl = 'https://example.com';
 
       const shortenedUrl = await service.shorten(
         originalUrl,
-        baseUrl,
         customAlias,
         userId,
       );
@@ -79,39 +73,27 @@ describe('UrlShortenerService', () => {
       });
 
       await expect(() =>
-        service.shorten(originalUrl, baseUrl, customAlias, userId),
+        service.shorten(originalUrl, customAlias, userId),
       ).rejects.toThrow('Custom alias already taken');
     });
 
     test('should throw an error when try to create custom alias without userId', async () => {
       await expect(() =>
-        service.shorten(
-          'https://example.com',
-          'https://my-shortener-app.com',
-          'my-custom-alias',
-          '',
-        ),
+        service.shorten('https://example.com', 'my-custom-alias', ''),
       ).rejects.toThrow('Invalid user ID');
     });
 
     test('should throw an error when try to create custom alias without customAlias', async () => {
       await expect(() =>
-        service.shorten(
-          'https://example.com',
-          'https://my-shortener-app.com',
-          '',
-          'user0123',
-        ),
+        service.shorten('https://example.com', '', 'user0123'),
       ).rejects.toThrow('Invalid custom alias');
     });
   });
 
   describe('Random Hash Flow', () => {
     test('should be able to create a random url', async () => {
-      const baseUrl = 'https://my-shortener-app.com';
       const originalUrl = 'https://example.com';
-
-      const shortenedUrl = await service.shorten(originalUrl, baseUrl);
+      const shortenedUrl = await service.shorten(originalUrl);
 
       expect(shortenedUrl).toMatch(
         new RegExp(`^${baseUrl}/url/[A-Za-z0-9+1=]{3,}$$`),
@@ -125,11 +107,10 @@ describe('UrlShortenerService', () => {
     });
 
     test('should return the same shortened url for the same original url', async () => {
-      const baseUrl = 'https://my-shortener-app.com';
       const originalUrl = 'https://example.com';
 
-      const firstShortenedUrl = await service.shorten(originalUrl, baseUrl);
-      const secondShortenedUrl = await service.shorten(originalUrl, baseUrl);
+      const firstShortenedUrl = await service.shorten(originalUrl);
+      const secondShortenedUrl = await service.shorten(originalUrl);
 
       expect(firstShortenedUrl).toBe(secondShortenedUrl);
     });
@@ -144,10 +125,9 @@ describe('UrlShortenerService', () => {
         userId: null,
       });
 
-      const baseUrl = 'https://my-shortener-app.com';
       const originalUrl = 'https://example.com';
 
-      await expect(service.shorten(originalUrl, baseUrl)).rejects.toThrow(
+      await expect(service.shorten(originalUrl)).rejects.toThrow(
         'Failed to generate unique hash after multiple attempts',
       );
     });
@@ -155,9 +135,8 @@ describe('UrlShortenerService', () => {
 
   describe('resolveShortenedUrl', () => {
     test('should resolve a shortened url to the original url', async () => {
-      const baseUrl = 'https://my-shortener-app.com';
       const originalUrl = 'https://example.com';
-      const shortenedUrl = await service.shorten(originalUrl, baseUrl);
+      const shortenedUrl = await service.shorten(originalUrl);
       const hash = shortenedUrl.split('/').pop() as string;
 
       const resolvedUrl = await service.resolveShortenedUrl(hash);

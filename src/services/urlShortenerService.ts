@@ -1,7 +1,11 @@
 import type { IUrlRepository } from '../repositories/interfaces/urlRepository';
-import { isValidHash, isValidURLToBeShortener } from '../lib/validators';
+import {
+  isValidHash,
+  isValidURLToBeShortener,
+  isValidCustomAlias,
+} from '../lib/validators';
 import { generateHash } from '../lib/crypto';
-
+import { BASE_URL } from '../env';
 const MAX_ATTEMPTS = 20;
 
 export class UrlShortenerService {
@@ -9,7 +13,6 @@ export class UrlShortenerService {
 
   async shorten(
     originalUrl: string,
-    baseUrl: string,
     customAlias?: string,
     userId?: string,
   ): Promise<string> {
@@ -24,7 +27,8 @@ export class UrlShortenerService {
       if (
         !customAlias ||
         typeof customAlias !== 'string' ||
-        customAlias.trim() === ''
+        customAlias.trim() === '' ||
+        !isValidCustomAlias(customAlias)
       ) {
         throw new Error('Invalid custom alias');
       }
@@ -33,14 +37,14 @@ export class UrlShortenerService {
         throw new Error('Invalid user ID');
       }
 
-      return await this.handleCustomAlias(
-        originalUrl,
-        baseUrl,
-        customAlias,
-        userId,
-      );
+      const existingRecord = await this.repo.findByCustomHash(customAlias);
+      if (existingRecord) {
+        throw new Error('Custom alias already taken');
+      }
+
+      return await this.handleCustomAlias(originalUrl, customAlias, userId);
     } else {
-      return await this.handleRandomHash(originalUrl, baseUrl);
+      return await this.handleRandomHash(originalUrl);
     }
   }
 
@@ -60,7 +64,6 @@ export class UrlShortenerService {
 
   private async handleCustomAlias(
     originalUrl: string,
-    baseUrl: string,
     customAlias: string,
     userId: string,
   ): Promise<string> {
@@ -70,16 +73,13 @@ export class UrlShortenerService {
     }
 
     await this.repo.createCustom(originalUrl, customAlias, userId);
-    return `${baseUrl}/url/${customAlias}`;
+    return `${BASE_URL}/url/${customAlias}`;
   }
 
-  private async handleRandomHash(
-    originalUrl: string,
-    baseUrl: string,
-  ): Promise<string> {
+  private async handleRandomHash(originalUrl: string): Promise<string> {
     const existingRecord = await this.repo.findByOriginalUrl(originalUrl);
     if (existingRecord) {
-      return `${baseUrl}/url/${existingRecord.hashed_url}`;
+      return `${BASE_URL}/url/${existingRecord.hashed_url}`;
     }
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
@@ -89,7 +89,7 @@ export class UrlShortenerService {
 
       if (!existsHashRecord) {
         await this.repo.createRandom(originalUrl, hash);
-        return `${baseUrl}/url/${hash}`;
+        return `${BASE_URL}/url/${hash}`;
       }
     }
 

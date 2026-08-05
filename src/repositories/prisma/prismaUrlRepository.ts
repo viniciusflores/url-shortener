@@ -1,8 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../../prisma/generated/client';
 import type { IUrlRepository, UrlRecord } from '../interfaces/urlRepository';
+import { DATABASE_URL } from '../../env';
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const adapter = new PrismaPg({ connectionString: DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 export class PrismaUrlRepository implements IUrlRepository {

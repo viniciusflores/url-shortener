@@ -3,8 +3,6 @@ import { PrismaUrlRepository } from '../repositories/prisma/prismaUrlRepository'
 import { UrlShortenerService } from '../services/urlShortenerService';
 import { logger } from '../lib/logger/winston';
 
-const { BASE_URL } = process.env;
-
 const service = new UrlShortenerService(new PrismaUrlRepository());
 
 const getUrlShortenerByHash = async (
@@ -47,7 +45,7 @@ const createUrlShortener = async (
   }
 
   try {
-    const shortened_url = await service.shorten(original_url, BASE_URL!);
+    const shortened_url = await service.shorten(original_url!);
     return res.json({ shortened_url });
   } catch (err: any) {
     if (err.message === 'Missing URL') {
@@ -95,7 +93,6 @@ const createCustomUrlShortener = async (
   try {
     const shortened_url = await service.shorten(
       original_url,
-      BASE_URL!,
       custom_alias,
       userId,
     );
@@ -110,6 +107,12 @@ const createCustomUrlShortener = async (
       return res
         .status(400)
         .send('Bad Request: Invalid URL, follow the patter "http://url.com"');
+    }
+    if (err.message === 'Invalid custom alias') {
+      return res.status(400).send('Bad Request: Invalid custom alias');
+    }
+    if (err.message === 'Custom alias already taken') {
+      return res.status(409).send('Conflict: Custom alias already taken');
     }
     logger.error('Error creating custom shortened URL:', {
       error: err,

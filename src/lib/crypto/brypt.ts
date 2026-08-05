@@ -1,9 +1,8 @@
+import { HASH_PASSWORD } from '../../env';
 import bcrypt from 'bcrypt';
 
-const { HASH_PASSWORD } = process.env;
-
 async function hashUserPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, parseInt(HASH_PASSWORD));
+  return bcrypt.hash(password, HASH_PASSWORD);
 }
 
 async function verifyUserPassword(

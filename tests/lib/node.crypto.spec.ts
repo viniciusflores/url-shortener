@@ -1,52 +1,66 @@
-import { describe, test, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const envMocks = vi.hoisted(() => {
+  return {
+    value: 7,
+  };
+});
+
+vi.mock('../../src/env', () => ({
+  get HASH_STRONG_NUMBER() {
+    return envMocks.value;
+  },
+}));
+
 import { generateHash } from '../../src/lib/crypto/node.crypto';
 
 describe('generateHash', () => {
-  test('generates hash with default byte count when env var is not set', () => {
-    // Mock process.env to return undefined for HASH_STRONG_NUMBER
-    const originalEnv = process.env;
-    process.env = { ...originalEnv };
-
-    // Test that it works without throwing
-    expect(() => generateHash()).not.toThrow();
+  beforeEach(() => {
+    envMocks.value = 7;
   });
 
-  test('generates hash with custom byte count from env var', () => {
-    const originalEnv = process.env;
-    process.env = { ...originalEnv, HASH_STRONG_NUMBER: '32' };
+  it('should return a string when called', () => {
+    const result = generateHash();
 
-    expect(() => generateHash()).not.toThrow();
-
-    // Restore original env
-    process.env = originalEnv;
+    expect(typeof result).toBe('string');
+    expect(result).not.toBeNull();
+    expect(result).not.toBeUndefined();
   });
 
-  test('throws error for invalid byte count', () => {
-    const originalEnv = process.env;
-    process.env = { ...originalEnv, HASH_STRONG_NUMBER: 'invalid' };
-
-    expect(() => generateHash()).toThrow(
-      'Invalid HASH_STRONG_NUMBER: "invalid"',
-    );
-
-    process.env = originalEnv;
+  it('should have a reasonable length based on HASH_STRONG_NUMBER', () => {
+    const result = generateHash();
+    expect(result.length).toBe(12);
   });
 
-  test('throws error for zero byte count', () => {
-    const originalEnv = process.env;
-    process.env = { ...originalEnv, HASH_STRONG_NUMBER: '0' };
+  it('should return unique and valid strings on multiple calls', () => {
+    const call1 = generateHash();
+    const call2 = generateHash();
 
-    expect(() => generateHash()).toThrow('Invalid HASH_STRONG_NUMBER: "0"');
-
-    process.env = originalEnv;
+    expect(call1).not.toBe(call2);
+    expect(call1.length).toBe(12);
+    expect(call2.length).toBe(12);
   });
 
-  test('throws error for negative byte count', () => {
-    const originalEnv = process.env;
-    process.env = { ...originalEnv, HASH_STRONG_NUMBER: '-5' };
+  it('should not contain any forward slashes', () => {
+    for (let i = 0; i < 50; i++) {
+      const result = generateHash();
+      expect(result).not.toContain('/');
+    }
+  });
 
-    expect(() => generateHash()).toThrow('Invalid HASH_STRONG_NUMBER: "-5"');
+  it('should match a base64 character set structure after replacing 1 back to /', () => {
+    const result = generateHash();
+    const originalBase64 = result.replace(/1/g, '/');
 
-    process.env = originalEnv;
+    const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
+    expect(base64Regex.test(originalBase64)).toBe(true);
+  });
+
+  it('should change output length when HASH_STRONG_NUMBER changes', () => {
+    envMocks.value = 15;
+
+    const hashWithLargeNumber = generateHash();
+
+    expect(hashWithLargeNumber.length).toBe(20);
   });
 });

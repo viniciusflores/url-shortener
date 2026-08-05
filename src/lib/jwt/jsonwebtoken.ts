@@ -1,11 +1,5 @@
-import jwt, { Secret, SignOptions } from 'jsonwebtoken';
-
-const JWT_SECRET: Secret = process.env.JWT_SECRET || 'potato';
-const JWT_EXPIRES_IN = '2d';
-
-const signOptions: SignOptions = {
-  expiresIn: JWT_EXPIRES_IN,
-};
+import jwt, { SignOptions } from 'jsonwebtoken';
+import { JWT_SECRET, JWT_EXPIRES_IN } from '../../env';
 
 interface UserPayload {
   userId: string;
@@ -20,7 +14,9 @@ interface DecodedUser {
 }
 
 function signToken(payload: UserPayload): string {
-  return jwt.sign(payload, JWT_SECRET, signOptions);
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN as any,
+  } as SignOptions);
 }
 
 function verifyToken(token: string): DecodedUser | null {
