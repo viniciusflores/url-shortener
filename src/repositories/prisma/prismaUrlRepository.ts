@@ -85,4 +85,68 @@ export class PrismaUrlRepository implements IUrlRepository {
       throw new Error(`Record with hash ${hash} not found`, { cause: error });
     }
   }
+
+  async findByUserId(userId: string): Promise<UrlRecord[]> {
+    const data = await prisma.urlShortener.findMany({
+      where: {
+        userId: userId,
+      },
+    });
+
+    return data;
+  }
+
+  async findByUserIdAndHash(
+    userId: string,
+    hash: string,
+  ): Promise<UrlRecord | null> {
+    const data = await prisma.urlShortener.findFirst({
+      where: {
+        userId: userId,
+        hashed_url: hash,
+      },
+    });
+
+    return data;
+  }
+
+  async updateAlias(
+    userId: string,
+    hash: string,
+    newAlias: string,
+  ): Promise<UrlRecord> {
+    try {
+      const data = await prisma.urlShortener.update({
+        where: {
+          userId: userId,
+          hashed_url: hash,
+        },
+        data: {
+          hashed_url: newAlias,
+        },
+      });
+      return data;
+    } catch (error) {
+      throw new Error(
+        `Failed to update alias for hash ${hash} and user ${userId}`,
+        { cause: error },
+      );
+    }
+  }
+
+  async deleteByUserIdAndHash(userId: string, hash: string): Promise<void> {
+    try {
+      await prisma.urlShortener.deleteMany({
+        where: {
+          userId: userId,
+          hashed_url: hash,
+        },
+      });
+    } catch (error) {
+      throw new Error(
+        `Failed to delete record with hash ${hash} for user ${userId}`,
+        { cause: error },
+      );
+    }
+  }
 }

@@ -70,6 +70,56 @@ export class MockUrlRepository implements IUrlRepository {
     record.lastAccessed = new Date();
   }
 
+  async findByUserId(userId: string): Promise<UrlRecord[]> {
+    return this.databaseInMemory.filter((data) => data.userId === userId);
+  }
+  async findByUserIdAndHash(
+    userId: string,
+    hash: string,
+  ): Promise<UrlRecord | null> {
+    return (
+      this.databaseInMemory.find(
+        (data) => data.userId === userId && data.hashed_url === hash,
+      ) ?? null
+    );
+  }
+  async updateAlias(
+    userId: string,
+    hash: string,
+    newAlias: string,
+  ): Promise<UrlRecord> {
+    const record = this.databaseInMemory.find(
+      (data) => data.userId === userId && data.hashed_url === hash,
+    );
+
+    if (!record) {
+      const prismaError = new Error('Record not found');
+      throw new Error(`Record with hash ${hash} not found for user ${userId}`, {
+        cause: prismaError,
+      });
+    }
+
+    record.hashed_url = newAlias;
+    return record;
+  }
+
+  async deleteByUserIdAndHash(userId: string, hash: string): Promise<void> {
+    const record = this.databaseInMemory.find(
+      (data) => data.userId === userId && data.hashed_url === hash,
+    );
+
+    if (!record) {
+      const prismaError = new Error('Record not found');
+      throw new Error(`Record with hash ${hash} not found for user ${userId}`, {
+        cause: prismaError,
+      });
+    }
+
+    this.databaseInMemory = this.databaseInMemory.filter(
+      (data) => !(data.userId === userId && data.hashed_url === hash),
+    );
+  }
+
   // Helper for tests: reset state of the in-memory database
   reset(): void {
     this.databaseInMemory = [];

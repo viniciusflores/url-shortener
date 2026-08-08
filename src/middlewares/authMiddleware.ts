@@ -11,9 +11,7 @@ export function authMiddleware(
   if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Missing or invalid token' });
   }
-
   const token = authHeader.substring(7).trim();
-
   try {
     req.user = verifyToken(token);
     next();

@@ -17,4 +17,12 @@ export interface IUrlRepository {
     user_id: string,
   ): Promise<UrlRecord>;
   incrementClicks(hash: string): Promise<void>;
+  findByUserId(userId: string): Promise<UrlRecord[]>;
+  findByUserIdAndHash(userId: string, hash: string): Promise<UrlRecord | null>;
+  updateAlias(
+    userId: string,
+    hash: string,
+    newAlias: string,
+  ): Promise<UrlRecord>;
+  deleteByUserIdAndHash(userId: string, hash: string): Promise<void>;
 }
