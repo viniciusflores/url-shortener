@@ -65,4 +65,22 @@ describe('URL Management tests', async () => {
       ]),
     );
   });
+
+  test('should be possible to get my url by hash', async () => {
+    const response = await got.get(`${BASE_URL}/me/urls/${custom_alias}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const { statusCode } = response;
+    const body = JSON.parse(response.body) as { shortened_url: string };
+    expect(statusCode).to.equal(200);
+    expect(body).toEqual(
+      expect.objectContaining({
+        original_url: original_url,
+        hashed_url: custom_alias,
+        userId: expect.any(String),
+      }),
+    );
+  });
 });
