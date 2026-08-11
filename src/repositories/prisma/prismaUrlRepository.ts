@@ -26,18 +26,6 @@ export class PrismaUrlRepository implements IUrlRepository {
     return data;
   }
 
-  async findByCustomHash(custom_alias: string): Promise<UrlRecord | null> {
-    const data = await prisma.urlShortener.findFirst({
-      where: {
-        hashed_url: custom_alias,
-        userId: {
-          not: null,
-        },
-      },
-    });
-    return data;
-  }
-
   async createRandom(
     originalUrl: string,
     hashedUrl: string,

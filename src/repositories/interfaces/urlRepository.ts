@@ -9,7 +9,6 @@ export interface UrlRecord {
 export interface IUrlRepository {
   findByOriginalUrl(url: string): Promise<UrlRecord | null>;
   findByHash(hash: string): Promise<UrlRecord | null>;
-  findByCustomHash(custom_alias: string): Promise<UrlRecord | null>;
   createRandom(originalUrl: string, hashedUrl: string): Promise<UrlRecord>;
   createCustom(
     originalUrl: string,

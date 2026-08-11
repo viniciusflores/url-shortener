@@ -15,7 +15,7 @@ export class UrlManagementService {
 
     const existUser = await this.userRepository.getById(userId);
     if (!existUser) {
-      throw new NotFoundError('Not found');
+      throw new NotFoundError('User not found');
     }
 
     return await this.urlRepository.findByUserId(userId);
@@ -31,7 +31,7 @@ export class UrlManagementService {
 
     const existUser = await this.userRepository.getById(userId);
     if (!existUser) {
-      throw new NotFoundError('Not found');
+      throw new NotFoundError('User not found');
     }
 
     const existRecord = await this.urlRepository.findByUserIdAndHash(
@@ -61,7 +61,7 @@ export class UrlManagementService {
     }
     const existUser = await this.userRepository.getById(userId);
     if (!existUser) {
-      throw new NotFoundError('Not found');
+      throw new NotFoundError('User not found');
     }
     const existRecord = await this.urlRepository.findByUserIdAndHash(
       userId,
@@ -69,6 +69,10 @@ export class UrlManagementService {
     );
     if (!existRecord) {
       throw new NotFoundError('Url not found');
+    }
+    const existNewAliasRecord = await this.urlRepository.findByHash(newAlias);
+    if (existNewAliasRecord) {
+      throw new BadRequestError('Custom alias already taken');
     }
 
     const updatedUrl = await this.urlRepository.updateAlias(
@@ -86,7 +90,10 @@ export class UrlManagementService {
     if (!hash || typeof hash !== 'string' || hash.trim() === '') {
       throw new BadRequestError('Invalid hash');
     }
-
+    const existUser = await this.userRepository.getById(userId);
+    if (!existUser) {
+      throw new NotFoundError('User not found');
+    }
     const existRecord = await this.urlRepository.findByUserIdAndHash(
       userId,
       hash,

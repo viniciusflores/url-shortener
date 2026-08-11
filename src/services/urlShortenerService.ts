@@ -37,12 +37,6 @@ export class UrlShortenerService {
       if (!userId || typeof userId !== 'string' || userId.trim() === '') {
         throw new BadRequestError('Invalid user ID');
       }
-
-      const existingRecord = await this.repo.findByCustomHash(customAlias);
-      if (existingRecord) {
-        throw new BadRequestError('Custom alias already taken');
-      }
-
       return await this.handleCustomAlias(originalUrl, customAlias, userId);
     } else {
       return await this.handleRandomHash(originalUrl);
@@ -68,7 +62,7 @@ export class UrlShortenerService {
     customAlias: string,
     userId: string,
   ): Promise<string> {
-    const existingRecord = await this.repo.findByCustomHash(customAlias);
+    const existingRecord = await this.repo.findByHash(customAlias);
     if (existingRecord) {
       throw new BadRequestError('Custom alias already taken');
     }

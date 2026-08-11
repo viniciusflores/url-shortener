@@ -32,64 +32,6 @@ describe('UrlShortenerService', () => {
     });
   });
 
-  describe('Custom Alias Flow', () => {
-    test('should be able to create a custom url with alias', async () => {
-      const customAlias = 'my-custom-alias';
-      const userId = 'user-123';
-      const originalUrl = 'https://example.com';
-
-      const shortenedUrl = await service.shorten(
-        originalUrl,
-        customAlias,
-        userId,
-      );
-
-      expect(shortenedUrl).toBe(`${baseUrl}/url/${customAlias}`);
-      repo.findByCustomHash(customAlias).then((record) => {
-        expect(record).not.toBeNull();
-        expect(record?.original_url).toBe(originalUrl);
-        expect(record?.hashed_url).toBe(customAlias);
-        expect(record?.userId).toBe(userId);
-      });
-    });
-
-    test('should not be able to create a custom url with alias already been taken', async () => {
-      const customAlias = 'my-custom-alias';
-      const userId = 'user-123';
-      const originalUrl = 'https://example.com';
-
-      const shortenedUrl = await service.shorten(
-        originalUrl,
-        customAlias,
-        userId,
-      );
-
-      expect(shortenedUrl).toBe(`${baseUrl}/url/${customAlias}`);
-      repo.findByCustomHash(customAlias).then((record) => {
-        expect(record).not.toBeNull();
-        expect(record?.original_url).toBe(originalUrl);
-        expect(record?.hashed_url).toBe(customAlias);
-        expect(record?.userId).toBe(userId);
-      });
-
-      await expect(() =>
-        service.shorten(originalUrl, customAlias, userId),
-      ).rejects.toThrow('Custom alias already taken');
-    });
-
-    test('should throw an error when try to create custom alias without userId', async () => {
-      await expect(() =>
-        service.shorten('https://example.com', 'my-custom-alias', ''),
-      ).rejects.toThrow('Invalid user ID');
-    });
-
-    test('should throw an error when try to create custom alias without customAlias', async () => {
-      await expect(() =>
-        service.shorten('https://example.com', '', 'user0123'),
-      ).rejects.toThrow('Invalid custom alias');
-    });
-  });
-
   describe('Random Hash Flow', () => {
     test('should be able to create a random url', async () => {
       const originalUrl = 'https://example.com';
@@ -130,6 +72,63 @@ describe('UrlShortenerService', () => {
       await expect(service.shorten(originalUrl)).rejects.toThrow(
         'Failed to generate unique hash after multiple attempts',
       );
+    });
+  });
+
+  describe('Custom Alias Flow', () => {
+    test('should be able to create a custom url with alias', async () => {
+      const customAlias = 'my-custom-alias';
+      const userId = 'user-123';
+      const originalUrl = 'https://example.com';
+
+      const shortenedUrl = await service.shorten(
+        originalUrl,
+        customAlias,
+        userId,
+      );
+
+      expect(shortenedUrl).toBe(`${baseUrl}/url/${customAlias}`);
+      repo.findByHash(customAlias).then((record) => {
+        expect(record).not.toBeNull();
+        expect(record?.original_url).toBe(originalUrl);
+        expect(record?.hashed_url).toBe(customAlias);
+        expect(record?.userId).toBe(userId);
+      });
+    });
+
+    test('should not be able to create a custom url with alias already been taken', async () => {
+      const customAlias = 'my-custom-alias';
+      const userId = 'user-123';
+      const originalUrl = 'https://example.com';
+
+      const shortenedUrl = await service.shorten(
+        originalUrl,
+        customAlias,
+        userId,
+      );
+
+      expect(shortenedUrl).toBe(`${baseUrl}/url/${customAlias}`);
+      repo.findByHash(customAlias).then((record) => {
+        expect(record).not.toBeNull();
+        expect(record?.original_url).toBe(originalUrl);
+        expect(record?.hashed_url).toBe(customAlias);
+        expect(record?.userId).toBe(userId);
+      });
+      await expect(() =>
+        service.shorten(originalUrl, customAlias, userId),
+      ).rejects.toThrow('Custom alias already taken');
+    });
+
+    test('should throw an error when try to create custom alias without userId', async () => {
+      await expect(() =>
+        service.shorten('https://example.com', 'my-custom-alias', ''),
+      ).rejects.toThrow('Invalid user ID');
+    });
+
+    test('should throw an error when try to create custom alias without customAlias', async () => {
+      await expect(() =>
+        service.shorten('https://example.com', '', 'user0123'),
+      ).rejects.toThrow('Invalid custom alias');
     });
   });
 

@@ -15,14 +15,6 @@ export class MockUrlRepository implements IUrlRepository {
     );
   }
 
-  async findByCustomHash(custom_alias: string): Promise<UrlRecord | null> {
-    return (
-      this.databaseInMemory.find(
-        (data) => data.hashed_url === custom_alias && data.userId !== null,
-      ) ?? null
-    );
-  }
-
   async createRandom(
     originalUrl: string,
     hashedUrl: string,
