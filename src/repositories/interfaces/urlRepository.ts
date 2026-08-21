@@ -10,15 +10,19 @@ export interface UrlRecord {
 export interface IUrlRepository {
   findByOriginalUrl(url: string): Promise<UrlRecord | null>;
   findByHash(hash: string): Promise<UrlRecord | null>;
+  findByUserId(userId: string): Promise<UrlRecord[]>;
+  findByUserIdAndHash(userId: string, hash: string): Promise<UrlRecord | null>;
+
   createRandom(originalUrl: string, hashedUrl: string): Promise<UrlRecord>;
   createCustom(
     originalUrl: string,
     custom_alias: string,
     user_id: string,
   ): Promise<UrlRecord>;
+
   incrementClicks(hash: string): Promise<void>;
-  findByUserId(userId: string): Promise<UrlRecord[]>;
-  findByUserIdAndHash(userId: string, hash: string): Promise<UrlRecord | null>;
+  updateExpiresAtInOneYear(hash: string): Promise<UrlRecord>;
+
   updateAlias(
     userId: string,
     hash: string,

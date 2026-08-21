@@ -84,6 +84,8 @@ export class UrlShortenerService {
   private async handleRandomHash(originalUrl: string): Promise<string> {
     const existingRecord = await this.repo.findByOriginalUrl(originalUrl);
     if (existingRecord) {
+      const hash = existingRecord.hashed_url;
+      await this.repo.updateExpiresAtInOneYear(hash);
       return `${BASE_URL}/url/${existingRecord.hashed_url}`;
     }
 

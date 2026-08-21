@@ -19,6 +19,21 @@ export class MockUrlRepository implements IUrlRepository {
     );
   }
 
+  async findByUserId(userId: string): Promise<UrlRecord[]> {
+    return this.databaseInMemory.filter((data) => data.userId === userId);
+  }
+
+  async findByUserIdAndHash(
+    userId: string,
+    hash: string,
+  ): Promise<UrlRecord | null> {
+    return (
+      this.databaseInMemory.find(
+        (data) => data.userId === userId && data.hashed_url === hash,
+      ) ?? null
+    );
+  }
+
   async createRandom(
     originalUrl: string,
     hashedUrl: string,
@@ -68,19 +83,22 @@ export class MockUrlRepository implements IUrlRepository {
     record.lastAccessed = new Date();
   }
 
-  async findByUserId(userId: string): Promise<UrlRecord[]> {
-    return this.databaseInMemory.filter((data) => data.userId === userId);
-  }
-  async findByUserIdAndHash(
-    userId: string,
-    hash: string,
-  ): Promise<UrlRecord | null> {
-    return (
-      this.databaseInMemory.find(
-        (data) => data.userId === userId && data.hashed_url === hash,
-      ) ?? null
+  async updateExpiresAtInOneYear(hash: string): Promise<UrlRecord> {
+    const record = this.databaseInMemory.find(
+      (data) => data.hashed_url === hash,
     );
+
+    if (!record) {
+      const prismaError = new Error('Record not found');
+      throw new Error(`Record with hash ${hash} not found`, {
+        cause: prismaError,
+      });
+    }
+
+    record.expiresAt = getExpiryDatePlusOneYear();
+    return record;
   }
+
   async updateAlias(
     userId: string,
     hash: string,

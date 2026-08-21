@@ -18,6 +18,7 @@ describe('UrlShortenerService', () => {
   afterEach(function () {
     vi.resetAllMocks();
     repo.reset();
+    vi.useRealTimers();
   });
 
   describe('shorten', () => {
@@ -58,6 +59,57 @@ describe('UrlShortenerService', () => {
 
       expect(firstShortenedUrl).toBe(secondShortenedUrl);
     });
+
+    test('should be update the expireAt when random url was generated twice', async () => {
+      vi.useFakeTimers();
+
+      const firstDate = new Date('2025-01-01T11:00:00.000Z');
+      vi.setSystemTime(firstDate);
+
+      const originalUrl = 'https://example.com';
+      const firstShortenedUrl = await service.shorten(originalUrl);
+      const firstUrlData = await repo.findByOriginalUrl(originalUrl);
+      const firstExpiresAt = firstUrlData!.expiresAt;
+      expect(firstExpiresAt.toISOString()).toEqual('2026-01-01T11:00:00.000Z');
+
+      // Move time forward
+      const secondDate = new Date('2026-08-22T12:00:00.000Z');
+      vi.setSystemTime(secondDate);
+
+      const secondShortenedUrl = await service.shorten(originalUrl);
+
+      const secondUrlData = await repo.findByOriginalUrl(originalUrl);
+      const secondExpiresAt = secondUrlData!.expiresAt;
+
+      expect(secondShortenedUrl).toBe(firstShortenedUrl);
+
+      expect(secondExpiresAt.toISOString()).toEqual('2027-08-22T12:00:00.000Z');
+      expect(secondExpiresAt!.getTime()).toBeGreaterThan(
+        firstExpiresAt!.getTime(),
+      );
+    });
+    // test('should be update the expireAt when random url was generated twice', async () => {
+    //   const originalUrl = `https://example-${Date.now()}.com`;
+
+    //   const firstShortenedUrl = await service.shorten(originalUrl);
+    //   const firstUrlData = await repo.findByOriginalUrl(originalUrl)
+    //   const firstExpiredAt = firstUrlData?.expiresAt
+
+    //   const secondShortenedUrl = await service.shorten(originalUrl);
+    //   const secondUrlData = await repo.findByOriginalUrl(originalUrl)
+    //   const secondExpiredAt = secondUrlData?.expiresAt
+
+    //   expect(firstShortenedUrl).toBe(secondShortenedUrl);
+    //   expect(secondExpiredAt).not.toBe(firstExpiredAt)
+    //   console.log('@@')
+    //   console.log(`First: ${firstExpiredAt!.getTime()}`)
+    //   console.log(`Second: ${secondExpiredAt!.getTime()}`)
+    //   console.log('@@')
+    //   expect(secondExpiredAt!.getTime()).toBeGreaterThan(
+    //     firstExpiredAt!.getTime(),
+    //   );
+    //   // expire second date is future than first date
+    // });
 
     test('should throw error when max attempts exceeded', async () => {
       // Mock the repository to always return a hash that exists

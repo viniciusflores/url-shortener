@@ -20,9 +20,34 @@ export class PrismaUrlRepository implements IUrlRepository {
 
     return data;
   }
+
   async findByHash(hash: string): Promise<UrlRecord | null> {
     const data = await prisma.urlShortener.findUnique({
       where: {
+        hashed_url: hash,
+      },
+    });
+
+    return data;
+  }
+
+  async findByUserId(userId: string): Promise<UrlRecord[]> {
+    const data = await prisma.urlShortener.findMany({
+      where: {
+        userId: userId,
+      },
+    });
+
+    return data;
+  }
+
+  async findByUserIdAndHash(
+    userId: string,
+    hash: string,
+  ): Promise<UrlRecord | null> {
+    const data = await prisma.urlShortener.findFirst({
+      where: {
+        userId: userId,
         hashed_url: hash,
       },
     });
@@ -80,28 +105,21 @@ export class PrismaUrlRepository implements IUrlRepository {
     }
   }
 
-  async findByUserId(userId: string): Promise<UrlRecord[]> {
-    const data = await prisma.urlShortener.findMany({
-      where: {
-        userId: userId,
-      },
-    });
+  async updateExpiresAtInOneYear(hash: string): Promise<UrlRecord> {
+    try {
+      const urlUpdated = await prisma.urlShortener.update({
+        where: {
+          hashed_url: hash,
+        },
+        data: {
+          expiresAt: getExpiryDatePlusOneYear(),
+        },
+      });
 
-    return data;
-  }
-
-  async findByUserIdAndHash(
-    userId: string,
-    hash: string,
-  ): Promise<UrlRecord | null> {
-    const data = await prisma.urlShortener.findFirst({
-      where: {
-        userId: userId,
-        hashed_url: hash,
-      },
-    });
-
-    return data;
+      return urlUpdated;
+    } catch (error) {
+      throw new Error(`Record with hash ${hash} not found`, { cause: error });
+    }
   }
 
   async updateAlias(
