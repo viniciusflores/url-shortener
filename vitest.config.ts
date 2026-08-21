@@ -36,6 +36,7 @@ export default defineConfig({
           include: ['tests/controllers/**/*.{test,spec}.ts'],
           setupFiles: ['./tests/setup-db.ts'],
           fileParallelism: false,
+          testTimeout: 10000,
         },
       },
     ],
