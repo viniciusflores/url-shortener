@@ -5,8 +5,14 @@ import {
   isValidCustomAlias,
 } from '../lib/validators';
 import { generateHash } from '../lib/crypto';
-import { AppError, BadRequestError, NotFoundError } from '../lib/errors';
+import {
+  AppError,
+  BadRequestError,
+  NotFoundError,
+  ResourcePermanentlyRemovedError,
+} from '../lib/errors';
 import { BASE_URL } from '../env';
+import { isExpired } from '../lib/date/utils';
 const MAX_ATTEMPTS = 20;
 
 export class UrlShortenerService {
@@ -51,6 +57,10 @@ export class UrlShortenerService {
     const record = await this.repo.findByHash(hash);
     if (!record) {
       throw new NotFoundError('URL not found');
+    }
+
+    if (record.expiresAt && isExpired(record.expiresAt)) {
+      throw new ResourcePermanentlyRemovedError();
     }
 
     await this.repo.incrementClicks(hash);

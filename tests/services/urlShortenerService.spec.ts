@@ -2,6 +2,8 @@ import { describe, test, beforeEach, expect, afterEach, vi } from 'vitest';
 import { UrlShortenerService } from '../../src/services/urlShortenerService';
 import { MockUrlRepository } from '../../src/repositories/mock/mockUrlRepo';
 import { BASE_URL } from '../../src/env';
+import { generateHash } from '../../src/lib/crypto';
+import { getExpiredDate } from '../../src/lib/date/utils';
 
 describe('UrlShortenerService', () => {
   let service: UrlShortenerService;
@@ -155,6 +157,19 @@ describe('UrlShortenerService', () => {
     test('should throw an error if the hash does not exist', async () => {
       await expect(service.resolveShortenedUrl('nonexistent')).rejects.toThrow(
         'URL not found',
+      );
+    });
+
+    test('should be throw an error when url is expired', async () => {
+      const originalUrl = 'https://example.com';
+      const hash = generateHash();
+      const my_url = await repo.createRandom(originalUrl, hash);
+
+      const expiredTime = getExpiredDate();
+      my_url.expiresAt = expiredTime;
+
+      await expect(service.resolveShortenedUrl(hash)).rejects.toThrow(
+        'The requested resource is no longer available on this server and is permanently removed.',
       );
     });
   });

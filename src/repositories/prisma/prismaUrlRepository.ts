@@ -2,6 +2,10 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../../prisma/generated/client';
 import type { IUrlRepository, UrlRecord } from '../interfaces/urlRepository';
 import { DATABASE_URL } from '../../env';
+import {
+  getExpiryDatePlusOneYear,
+  getExpiryDatePlusTwoYears,
+} from '../../lib/date/utils';
 
 const adapter = new PrismaPg({ connectionString: DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -34,6 +38,7 @@ export class PrismaUrlRepository implements IUrlRepository {
       data: {
         original_url: originalUrl,
         hashed_url: hashedUrl,
+        expiresAt: getExpiryDatePlusOneYear(),
       },
     });
 
@@ -50,6 +55,7 @@ export class PrismaUrlRepository implements IUrlRepository {
         original_url: originalUrl,
         hashed_url: custom_alias,
         userId: user_id,
+        expiresAt: getExpiryDatePlusTwoYears(),
       },
     });
 
@@ -111,6 +117,7 @@ export class PrismaUrlRepository implements IUrlRepository {
         },
         data: {
           hashed_url: newAlias,
+          expiresAt: getExpiryDatePlusTwoYears(),
         },
       });
       return data;

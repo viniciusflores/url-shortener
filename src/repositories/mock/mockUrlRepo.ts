@@ -1,4 +1,8 @@
 import type { IUrlRepository, UrlRecord } from '../interfaces/urlRepository';
+import {
+  getExpiryDatePlusOneYear,
+  getExpiryDatePlusTwoYears,
+} from '../../lib/date/utils';
 
 export class MockUrlRepository implements IUrlRepository {
   private databaseInMemory: UrlRecord[] = [];
@@ -25,6 +29,7 @@ export class MockUrlRepository implements IUrlRepository {
       clicks: 0,
       lastAccessed: null,
       userId: null,
+      expiresAt: getExpiryDatePlusOneYear(),
     };
     this.databaseInMemory.push(record);
     return record;
@@ -41,6 +46,7 @@ export class MockUrlRepository implements IUrlRepository {
       clicks: 0,
       lastAccessed: null,
       userId: user_id,
+      expiresAt: getExpiryDatePlusTwoYears(),
     };
     this.databaseInMemory.push(record);
     return record;
@@ -92,6 +98,7 @@ export class MockUrlRepository implements IUrlRepository {
     }
 
     record.hashed_url = newAlias;
+    record.expiresAt = getExpiryDatePlusTwoYears();
     return record;
   }
 

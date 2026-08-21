@@ -4,6 +4,7 @@ export interface UrlRecord {
   clicks: number;
   lastAccessed: Date | null;
   userId: string | null;
+  expiresAt: Date | null;
 }
 
 export interface IUrlRepository {
