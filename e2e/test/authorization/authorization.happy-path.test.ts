@@ -6,7 +6,7 @@ const { BASE_URL } = process.env;
 describe('Authorization happy path test', function () {
   test('should be possible to register an user', async function () {
     const timestamp = Date.now();
-    const username = `user${timestamp}@example.com`;
+    const username = `user_register${timestamp}@example.com`;
     const password = `password${timestamp}`;
 
     const response = await got.post(`${BASE_URL}/auth/register`, {
@@ -22,7 +22,7 @@ describe('Authorization happy path test', function () {
 
   test('should be possible to login an user', async function () {
     const timestamp = Date.now();
-    const username = `user${timestamp}@example.com`;
+    const username = `user_login${timestamp}@example.com`;
     const password = `password${timestamp}`;
 
     await got.post(`${BASE_URL}/auth/register`, {

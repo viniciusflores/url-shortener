@@ -82,7 +82,7 @@ describe('Shorten URL validation tests', function () {
     const timestamp = Date.now();
     const original_url = `https://www.google.com/?q=custom+url+${timestamp}`;
 
-    const username = `user${timestamp}@example.com`;
+    const username = `user_custom_url${timestamp}@example.com`;
     const password = `password${timestamp}`;
 
     await got.post(`${BASE_URL}/auth/register`, {
@@ -121,7 +121,7 @@ describe('Shorten URL validation tests', function () {
     const timestamp = Date.now();
     const custom_alias = `custom-alias-${timestamp}`;
 
-    const username = `user${timestamp}@example.com`;
+    const username = `user_custom_url${timestamp}@example.com`;
     const password = `password${timestamp}`;
 
     await got.post(`${BASE_URL}/auth/register`, {

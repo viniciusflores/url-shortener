@@ -13,7 +13,7 @@ describe('URL Management tests', async () => {
 
   beforeAll(async () => {
     timestamp = Date.now();
-    username = `user${timestamp}@example.com`;
+    username = `user_url_management${timestamp}@example.com`;
     password = `password${timestamp}`;
     original_url = `https://google.com${timestamp}`;
     custom_alias = `custom-alias-${timestamp}`;
