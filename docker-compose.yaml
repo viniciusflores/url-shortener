@@ -25,7 +25,7 @@ services:
     volumes:
       - db-test:/var/lib/postgresql
 
-  redis:
+  redis-cache:
     image: ${REDIS_IMAGE}
     container_name: url-shortener-redis-cache
     restart: unless-stopped

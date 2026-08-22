@@ -21,6 +21,9 @@ const envSchema = z.object({
   DB_POSTGRES_PORT_TEST: z.coerce.number().default(5433),
   DB_POSTGRES_DB_TEST: z.string(),
   DATABASE_URL_TEST: z.string(),
+  REDIS_IMAGE: z.string(),
+  REDIS_PORT: z.coerce.number().default(6379),
+  REDIS_URL: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);
@@ -50,4 +53,7 @@ export const {
   JWT_EXPIRES_IN,
   JWT_SECRET,
   NODE_ENV,
+  REDIS_IMAGE,
+  REDIS_PORT,
+  REDIS_URL,
 } = _env.data;
