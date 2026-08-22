@@ -34,10 +34,21 @@ services:
     volumes:
       - cache:/data
 
+  redis-test-cache:
+    image: ${REDIS_IMAGE}
+    container_name: url-shortener-redis-cache-test
+    restart: unless-stopped
+    ports:
+      - '${REDIS_TEST_PORT}:6379'
+    volumes:
+      - cache-test:/data
+
 volumes:
   db:
     driver: local
   db-test:
     driver: local
   cache:
+    driver: local
+  cache-test:
     driver: local
