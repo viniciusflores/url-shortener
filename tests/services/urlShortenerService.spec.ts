@@ -3,7 +3,19 @@ import { UrlShortenerService } from '../../src/services/urlShortenerService';
 import { MockUrlRepository } from '../../src/repositories/mock/mockUrlRepo';
 import { BASE_URL } from '../../src/env';
 import { generateHash } from '../../src/lib/crypto';
-import { getExpiredDate } from '../../src/lib/date/utils';
+import {
+  getExpiredDate,
+  getExpiryDatePlusOneYear,
+} from '../../src/lib/date/utils';
+import { redisCacheUrlShortener } from '../../src/lib/cache';
+
+vi.mock('../../src/lib/cache/redis', () => ({
+  redisCacheUrlShortener: {
+    get: vi.fn(),
+    set: vi.fn(),
+    invalidate: vi.fn(),
+  },
+}));
 
 describe('UrlShortenerService', () => {
   let service: UrlShortenerService;
@@ -13,6 +25,8 @@ describe('UrlShortenerService', () => {
   beforeEach(() => {
     repo = new MockUrlRepository();
     service = new UrlShortenerService(repo);
+    vi.clearAllMocks();
+    vi.mocked(redisCacheUrlShortener.get).mockResolvedValue(null);
   });
 
   afterEach(function () {
@@ -88,28 +102,6 @@ describe('UrlShortenerService', () => {
         firstExpiresAt!.getTime(),
       );
     });
-    // test('should be update the expireAt when random url was generated twice', async () => {
-    //   const originalUrl = `https://example-${Date.now()}.com`;
-
-    //   const firstShortenedUrl = await service.shorten(originalUrl);
-    //   const firstUrlData = await repo.findByOriginalUrl(originalUrl)
-    //   const firstExpiredAt = firstUrlData?.expiresAt
-
-    //   const secondShortenedUrl = await service.shorten(originalUrl);
-    //   const secondUrlData = await repo.findByOriginalUrl(originalUrl)
-    //   const secondExpiredAt = secondUrlData?.expiresAt
-
-    //   expect(firstShortenedUrl).toBe(secondShortenedUrl);
-    //   expect(secondExpiredAt).not.toBe(firstExpiredAt)
-    //   console.log('@@')
-    //   console.log(`First: ${firstExpiredAt!.getTime()}`)
-    //   console.log(`Second: ${secondExpiredAt!.getTime()}`)
-    //   console.log('@@')
-    //   expect(secondExpiredAt!.getTime()).toBeGreaterThan(
-    //     firstExpiredAt!.getTime(),
-    //   );
-    //   // expire second date is future than first date
-    // });
 
     test('should throw error when max attempts exceeded', async () => {
       // Mock the repository to always return a hash that exists
@@ -222,6 +214,52 @@ describe('UrlShortenerService', () => {
 
       await expect(service.resolveShortenedUrl(hash)).rejects.toThrow(
         'The requested resource is no longer available on this server and is permanently removed.',
+      );
+    });
+  });
+
+  describe('Resolve shortener URL with redis', () => {
+    test('returns url from cache on hit, without touching the repo for lookup', async () => {
+      vi.mocked(redisCacheUrlShortener.get).mockResolvedValue({
+        original_url: 'https://example.com',
+        expiresAt: getExpiryDatePlusOneYear(),
+      });
+
+      // Mock repo.findByHash to be a spy
+      const findByHashSpy = vi
+        .spyOn(repo, 'findByHash')
+        .mockResolvedValue(null);
+
+      const hash = generateHash();
+      await repo.createRandom('https://example.com', hash);
+
+      const result = await service.resolveShortenedUrl(hash);
+
+      expect(result).toBe('https://example.com');
+      expect(findByHashSpy).not.toHaveBeenCalled();
+    });
+
+    test('invalidates cache and throws when cached entry is expired', async () => {
+      vi.mocked(redisCacheUrlShortener.get).mockResolvedValue({
+        original_url: 'https://example.com',
+        expiresAt: getExpiredDate(),
+      });
+
+      await expect(service.resolveShortenedUrl('abc123')).rejects.toThrow(
+        'The requested resource is no longer available on this server and is permanently removed.',
+      );
+
+      expect(redisCacheUrlShortener.invalidate).toHaveBeenCalledWith('abc123');
+    });
+
+    test('populates cache on miss when repo returns a valid record', async () => {
+      const hash = generateHash();
+      await repo.createRandom('https://example.com', hash);
+
+      await service.resolveShortenedUrl(hash);
+
+      expect(redisCacheUrlShortener.set).toHaveBeenCalledWith(
+        expect.objectContaining({ hash, original_url: 'https://example.com' }),
       );
     });
   });
