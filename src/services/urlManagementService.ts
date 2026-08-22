@@ -1,6 +1,7 @@
 import { BadRequestError, NotFoundError } from '../lib/errors';
 import type { IUrlRepository } from '../repositories/interfaces/urlRepository';
 import type { IUserRepository } from '../repositories/interfaces/userRepository';
+import { redisCacheUrlShortener } from '../lib/cache';
 
 export class UrlManagementService {
   constructor(
@@ -75,6 +76,8 @@ export class UrlManagementService {
       throw new BadRequestError('Custom alias already taken');
     }
 
+    await redisCacheUrlShortener.invalidate(hash);
+
     const updatedUrl = await this.urlRepository.updateAlias(
       userId,
       hash,
@@ -102,6 +105,7 @@ export class UrlManagementService {
       throw new NotFoundError('URL not found for the user');
     }
 
+    await redisCacheUrlShortener.invalidate(hash);
     await this.urlRepository.deleteByUserIdAndHash(userId, hash);
   }
 }

@@ -13,6 +13,7 @@ import {
 } from '../lib/errors';
 import { BASE_URL } from '../env';
 import { isExpired } from '../lib/date/utils';
+import { redisCacheUrlShortener } from '../lib/cache';
 const MAX_ATTEMPTS = 20;
 
 export class UrlShortenerService {
@@ -54,15 +55,27 @@ export class UrlShortenerService {
       throw new BadRequestError('Invalid hash format provided');
     }
 
+    const cached = await redisCacheUrlShortener.get(hash);
+    if (cached) {
+      if (isExpired(new Date(cached.expiresAt))) {
+        await redisCacheUrlShortener.invalidate(hash);
+        throw new ResourcePermanentlyRemovedError();
+      }
+      await this.repo.incrementClicks(hash);
+      return cached.original_url;
+    }
+
     const record = await this.repo.findByHash(hash);
     if (!record) {
       throw new NotFoundError('URL not found');
     }
 
-    if (record.expiresAt && isExpired(record.expiresAt)) {
+    const { original_url, expiresAt } = record;
+    if (expiresAt && isExpired(expiresAt)) {
       throw new ResourcePermanentlyRemovedError();
     }
 
+    await redisCacheUrlShortener.set({ hash, original_url, expiresAt });
     await this.repo.incrementClicks(hash);
     return record.original_url;
   }
