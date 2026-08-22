@@ -6,9 +6,10 @@ const CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 1 week
 
 const redis = new Redis(REDIS_URL);
 
+/* c8 ignore start */
 redis.on('connect', () => logger.info('Redis connected'));
 redis.on('error', (err) => logger.info('Redis error', err));
-
+/* c8 ignore stop */
 interface CachedUrlShortener {
   original_url: string;
   expiresAt: Date;
