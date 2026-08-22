@@ -24,6 +24,8 @@ const envSchema = z.object({
   REDIS_IMAGE: z.string(),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_URL: z.string(),
+  REDIS_TEST_PORT: z.coerce.number().default(6380),
+  REDIS_TEST_URL: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);
@@ -56,4 +58,6 @@ export const {
   REDIS_IMAGE,
   REDIS_PORT,
   REDIS_URL,
+  REDIS_TEST_PORT,
+  REDIS_TEST_URL,
 } = _env.data;
