@@ -7,8 +7,13 @@ import {
   UnauthorizedError,
 } from '../lib/errors';
 import { logger } from '../lib/logger/winston';
+import { EventClickService } from '../services/eventClickService';
+import { PrismaClickEventRepository } from '../repositories/prisma/prismaEventClickRepository';
 
 const service = new UrlShortenerService(new PrismaUrlRepository());
+const analyticsService = new EventClickService(
+  new PrismaClickEventRepository(),
+);
 
 const getUrlShortenerByHash = async (
   req: Request,
@@ -21,12 +26,17 @@ const getUrlShortenerByHash = async (
       throw new BadRequestError('Bad Request: Absence of hash parameter');
     }
 
-    const originalUrl = await service.resolveShortenedUrl(hash);
-    if (!originalUrl) {
+    const shortener = await service.resolveShortenedUrl(hash);
+    if (!shortener) {
       throw new NotFoundError('Not Found : The requested URL does not exist');
     }
 
-    return res.redirect(originalUrl);
+    const ip = req.ip || '';
+    const userAgent = req.headers['user-agent'] || '';
+
+    await analyticsService.insert(hash, ip, userAgent);
+
+    return res.redirect(shortener.original_url);
   } catch (err: any) {
     logger.error('Error in getUrlShortenerByHash:', {
       error: err,

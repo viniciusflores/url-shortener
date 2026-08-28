@@ -9,14 +9,15 @@ datasource db {
 
 model UrlShortener {
   original_url String
-  hashed_url   String    @unique
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  clicks       Int       @default(0)
+  hashed_url   String       @id @unique
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  clicks       Int          @default(0)
   lastAccessed DateTime?
-  expiresAt    DateTime?
+  expiresAt    DateTime
   userId       String?
-  user         User?     @relation(fields: [userId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id])
+  clickEvents  ClickEvent[]
 
   @@index([hashed_url])
 }
@@ -27,4 +28,16 @@ model User {
   password_hashed String
   createdAt       DateTime       @default(now())
   urls            UrlShortener[]
+}
+
+model ClickEvent {
+  id               String   @id @default(uuid())
+  shortener_url_id String
+  createdAt        DateTime @default(now())
+  ip               String?
+  userAgent        String?
+
+  shortUrl UrlShortener @relation(fields: [shortener_url_id], references: [hashed_url], onDelete: Cascade)
+
+  @@index([shortener_url_id, createdAt])
 }

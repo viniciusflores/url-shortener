@@ -10,6 +10,10 @@ const reservedWords = [
   'status',
   'logout',
   'pricing',
+  'user',
+  'root',
+  'test',
+  'config',
 ];
 
 const minimumAliasLength = 3;
@@ -28,4 +32,4 @@ const isValidCustomAlias = (alias: string): boolean => {
   return /^[a-zA-Z0-9+_-]+$/.test(alias);
 };
 
-export { isValidCustomAlias };
+export { isValidCustomAlias, reservedWords };

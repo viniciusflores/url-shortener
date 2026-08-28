@@ -1,8 +1,8 @@
 import type { IUrlRepository } from '../repositories/interfaces/urlRepository';
 import {
-  isValidHash,
   isValidURLToBeShortener,
   isValidCustomAlias,
+  validateHashOrCustomHashToBeResolved,
 } from '../lib/validators';
 import { generateHash } from '../lib/crypto';
 import {
@@ -15,6 +15,11 @@ import { BASE_URL } from '../env';
 import { isExpired } from '../lib/date/utils';
 import { redisCacheUrlShortener } from '../lib/cache';
 const MAX_ATTEMPTS = 20;
+
+interface IResolvedSHortenerUrl {
+  original_url: string;
+  expiresAt: Date | null;
+}
 
 export class UrlShortenerService {
   constructor(private readonly repo: IUrlRepository) {}
@@ -50,19 +55,20 @@ export class UrlShortenerService {
     }
   }
 
-  async resolveShortenedUrl(hash: string): Promise<string> {
-    if (!hash || !isValidHash(hash)) {
+  async resolveShortenedUrl(hash: string): Promise<IResolvedSHortenerUrl> {
+    if (!validateHashOrCustomHashToBeResolved(hash)) {
       throw new BadRequestError('Invalid hash format provided');
     }
 
     const cached = await redisCacheUrlShortener.get(hash);
     if (cached) {
-      if (isExpired(new Date(cached.expiresAt))) {
+      if (cached.expiresAt && isExpired(new Date(cached.expiresAt))) {
         await redisCacheUrlShortener.invalidate(hash);
         throw new ResourcePermanentlyRemovedError();
       }
+      //TODO: add conditional to increment clicks better
       await this.repo.incrementClicks(hash);
-      return cached.original_url;
+      return cached;
     }
 
     const record = await this.repo.findByHash(hash);
@@ -76,8 +82,10 @@ export class UrlShortenerService {
     }
 
     await redisCacheUrlShortener.set({ hash, original_url, expiresAt });
+    //TODO: add conditional to increment clicks better
     await this.repo.incrementClicks(hash);
-    return record.original_url;
+    const formattedUrl = { original_url, expiresAt };
+    return formattedUrl;
   }
 
   private async handleCustomAlias(
