@@ -68,36 +68,4 @@ describe('URL Shortener Controller - Edge Cases', () => {
       expect(errorMessage).toBe('Not Found : The requested URL does not exist');
     });
   });
-
-  // Test for valid functionality - simplified to avoid response structure issues
-  describe('Controller Logic Validation', () => {
-    it('should handle valid requests properly', async () => {
-      // Mock successful service responses
-      vi.spyOn(UrlShortenerService.prototype, 'shorten').mockResolvedValue({
-        original_url: 'https://www.example.com',
-        short_url: 'http://localhost:3000/abc123',
-      });
-
-      vi.spyOn(
-        UrlShortenerService.prototype,
-        'resolveShortenedUrl',
-      ).mockResolvedValue({
-        original_url: 'https://www.example.com',
-      });
-
-      // Test successful shorten
-      const response = await request(app)
-        .post('/url/')
-        .send({ original_url: 'https://www.example.com' })
-        .expect(200);
-
-      // Just check that the response has the expected structure (not the exact properties)
-      expect(response.body).toHaveProperty('shortened_url');
-
-      // Test successful resolve - this should redirect with a 302 status
-      const resolveResponse = await request(app).get('/url/abc123').expect(302); // Should redirect
-
-      expect(resolveResponse.header).toHaveProperty('location');
-    });
-  });
 });

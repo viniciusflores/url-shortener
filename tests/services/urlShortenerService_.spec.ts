@@ -62,6 +62,7 @@ describe('UrlShortenerService', () => {
         expect(record?.original_url).toBe(originalUrl);
         expect(record?.hashed_url).toMatch(/[a-zA-Z0-9]{6}/);
         expect(record?.userId).toBeNull();
+        expect(record?.expiresAt).instanceOf(Date);
       });
     });
 
@@ -111,6 +112,7 @@ describe('UrlShortenerService', () => {
         clicks: 0,
         lastAccessed: null,
         userId: null,
+        expiresAt: new Date(),
       });
 
       const originalUrl = 'https://example.com';
@@ -139,6 +141,7 @@ describe('UrlShortenerService', () => {
         expect(record?.original_url).toBe(originalUrl);
         expect(record?.hashed_url).toBe(customAlias);
         expect(record?.userId).toBe(userId);
+        expect(record?.expiresAt).toBeInstanceOf(Date);
       });
     });
 
@@ -159,6 +162,7 @@ describe('UrlShortenerService', () => {
         expect(record?.original_url).toBe(originalUrl);
         expect(record?.hashed_url).toBe(customAlias);
         expect(record?.userId).toBe(userId);
+        expect(record?.expiresAt).toBeInstanceOf(Date);
       });
       await expect(() =>
         service.shorten(originalUrl, customAlias, userId),
@@ -186,15 +190,44 @@ describe('UrlShortenerService', () => {
 
       const resolvedUrl = await service.resolveShortenedUrl(hash);
 
-      expect(resolvedUrl).toBe(originalUrl);
+      expect(resolvedUrl.original_url).toBe(originalUrl);
     });
 
-    test('should throw an error for invalid hash', async () => {
+    test('should handle invalid hash formats properly', async () => {
+      // Test empty string
       await expect(service.resolveShortenedUrl('')).rejects.toThrow(
-        'Invalid hash',
+        'Invalid hash format provided',
       );
-      await expect(service.resolveShortenedUrl('invalid-hash')).rejects.toThrow(
-        'Invalid hash',
+
+      // Test null/undefined
+      await expect(service.resolveShortenedUrl(null as any)).rejects.toThrow(
+        'Invalid hash format provided',
+      );
+
+      // Test whitespace only
+      await expect(service.resolveShortenedUrl(' ')).rejects.toThrow(
+        'Invalid hash format provided',
+      );
+
+      // Test invalid characters (like single character)
+      await expect(service.resolveShortenedUrl('x')).rejects.toThrow(
+        'Invalid hash format provided',
+      );
+
+      // Test reserved words
+      await expect(service.resolveShortenedUrl('login')).rejects.toThrow(
+        'Invalid hash format provided',
+      );
+      await expect(service.resolveShortenedUrl('api')).rejects.toThrow(
+        'Invalid hash format provided',
+      );
+      await expect(service.resolveShortenedUrl('health')).rejects.toThrow(
+        'Invalid hash format provided',
+      );
+
+      // Test malformed URLs
+      await expect(service.resolveShortenedUrl('/?url=all')).rejects.toThrow(
+        'Invalid hash format provided',
       );
     });
 
@@ -235,7 +268,7 @@ describe('UrlShortenerService', () => {
 
       const result = await service.resolveShortenedUrl(hash);
 
-      expect(result).toBe('https://example.com');
+      expect(result.original_url).toBe('https://example.com');
       expect(findByHashSpy).not.toHaveBeenCalled();
     });
 
