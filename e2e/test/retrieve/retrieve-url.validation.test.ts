@@ -9,9 +9,9 @@ describe('Retrieve URL validation tests', function () {
       const parameter = 'non-existent-url';
       await got.get(`${BASE_URL}/url/${parameter}`);
     } catch (error: any) {
-      expect(error.response.statusCode).toBe(400);
+      expect(error.response.statusCode).toBe(404);
       const errorMessage = JSON.parse(error.response.body).message;
-      expect(errorMessage).toBe('Invalid hash format provided');
+      expect(errorMessage).toBe('URL not found');
     }
   });
 
