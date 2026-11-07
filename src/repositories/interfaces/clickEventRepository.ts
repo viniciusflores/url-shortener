@@ -3,6 +3,12 @@ export interface ClickEvent {
   shortener_url_id: string;
   ip: string | null;
   userAgent: string | null;
+  createdAt: Date;
+}
+
+export interface ClickEventRange {
+  from?: Date;
+  to?: Date;
 }
 
 export interface IClickEventRepository {
@@ -11,5 +17,8 @@ export interface IClickEventRepository {
     ip: string,
     userAgent: string,
   ): Promise<ClickEvent>;
-  getDataByHash(hash: string): Promise<ClickEvent[] | null>;
+  getDataByHash(
+    hash: string,
+    range?: ClickEventRange,
+  ): Promise<ClickEvent[] | null>;
 }

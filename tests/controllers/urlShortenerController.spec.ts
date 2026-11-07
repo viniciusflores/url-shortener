@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from '../../src/app';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../prisma/generated/client';
+import { signToken } from '../../src/lib/jwt';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -53,6 +54,104 @@ describe('URL Shortener Controller - Integration Tests', () => {
   describe('GET /url/:hash', () => {
     it('should return 404 for non-existent hash', async () => {
       await request(app).get('/url/nonexistent').expect(404);
+    });
+
+    it('should register a click event when accessing shortened URL', async () => {
+      const createResponse = await request(app)
+        .post('/url/')
+        .send({ original_url: 'https://www.example.com/click' })
+        .expect(200);
+      const hash = createResponse.body.shortened_url.split('/').pop();
+
+      await request(app)
+        .get(`/url/${hash}`)
+        .set('User-Agent', 'Chrome 123')
+        .expect(302);
+
+      const clicks = await prisma.clickEvent.findMany({
+        where: { shortener_url_id: hash },
+      });
+      expect(clicks).toHaveLength(1);
+      expect(clicks[0].userAgent).toBe('Chrome 123');
+    });
+  });
+
+  describe('POST /url/custom', () => {
+    let token: string;
+
+    beforeEach(async () => {
+      const user = await prisma.user.create({
+        data: { email: 'custom@example.com', password_hashed: 'hashed' },
+      });
+      token = signToken({ userId: user.id, email: user.email });
+    });
+
+    it('should return 401 without token', async () => {
+      await request(app)
+        .post('/url/custom')
+        .send({
+          original_url: 'https://www.example.com',
+          custom_alias: 'my-alias',
+        })
+        .expect(401);
+    });
+
+    it('should create a custom shortened URL', async () => {
+      const response = await request(app)
+        .post('/url/custom')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          original_url: 'https://www.example.com',
+          custom_alias: 'my-alias',
+        })
+        .expect(200);
+
+      expect(response.body.shortened_url).toMatch(/\/url\/my-alias$/);
+    });
+
+    it('should return 400 without custom_alias', async () => {
+      const response = await request(app)
+        .post('/url/custom')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ original_url: 'https://www.example.com' })
+        .expect(400);
+
+      expect(response.body.message).toBe(
+        'Bad Request: Absence of custom_alias parameter',
+      );
+    });
+
+    it('should return 400 for reserved custom alias', async () => {
+      const response = await request(app)
+        .post('/url/custom')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          original_url: 'https://www.example.com',
+          custom_alias: 'admin',
+        })
+        .expect(400);
+
+      expect(response.body.message).toBe('Invalid custom alias');
+    });
+
+    it('should return 400 when custom alias is already taken', async () => {
+      const body = {
+        original_url: 'https://www.example.com',
+        custom_alias: 'taken-alias',
+      };
+      await request(app)
+        .post('/url/custom')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body)
+        .expect(200);
+
+      const response = await request(app)
+        .post('/url/custom')
+        .set('Authorization', `Bearer ${token}`)
+        .send(body)
+        .expect(400);
+
+      expect(response.body.message).toBe('Custom alias already taken');
     });
   });
 });

@@ -22,7 +22,19 @@ function isExpired(expiryDate: Date): boolean {
   return Date.now() > expiryDate.getTime();
 }
 
+function getStartOfUTCDay(isoDate: string): Date {
+  return new Date(`${isoDate}T00:00:00.000Z`);
+}
+
+function addUTCDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
 export {
+  addUTCDays,
+  getStartOfUTCDay,
   getExpiredDate,
   getExpiryDateInYears,
   getExpiryDatePlusOneYear,

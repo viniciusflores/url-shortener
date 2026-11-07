@@ -11,6 +11,7 @@ import {
   updateAlias,
   deleteUrl,
 } from './controllers/urlManagementController';
+import { getUrlAnalytics } from './controllers/urlAnalyticsController';
 import { authMiddleware } from './middlewares/authMiddleware';
 
 const routes = Router();
@@ -30,5 +31,7 @@ routes.get('/me/urls', authMiddleware, getMyUrls);
 routes.get('/me/urls/:hash', authMiddleware, getMyUrlByHash);
 routes.patch('/me/urls/:hash', authMiddleware, updateAlias);
 routes.delete('/me/urls/:hash', authMiddleware, deleteUrl);
+
+routes.get('/me/urls/:hash/analytics', authMiddleware, getUrlAnalytics);
 
 export default routes;
