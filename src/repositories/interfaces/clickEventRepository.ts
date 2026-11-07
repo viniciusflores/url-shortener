@@ -17,6 +17,7 @@ export interface IClickEventRepository {
     ip: string,
     userAgent: string,
   ): Promise<ClickEvent>;
+  countByHashes(hashes: string[]): Promise<Map<string, number>>;
   getDataByHash(
     hash: string,
     range?: ClickEventRange,

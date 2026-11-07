@@ -1,4 +1,5 @@
 import { describe, test, beforeEach, expect, afterEach, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
 import { UrlShortenerService } from '../../src/services/urlShortenerService';
 import { MockUrlRepository } from '../../src/repositories/mock/mockUrlRepo';
 import { BASE_URL } from '../../src/env';
@@ -16,8 +17,8 @@ describe('UrlShortenerService - random hash tests', () => {
   let service: UrlShortenerService;
   let repo: MockUrlRepository;
   const baseUrl = BASE_URL;
-  let findByOriginalUrlSpy: vi.SpyInstance;
-  let createRandomSpy: vi.SpyInstance;
+  let findByOriginalUrlSpy: MockInstance;
+  let createRandomSpy: MockInstance;
 
   beforeEach(() => {
     repo = new MockUrlRepository();
@@ -40,14 +41,14 @@ describe('UrlShortenerService - random hash tests', () => {
     const shortenedUrl = await service.shorten(originalUrl);
 
     expect(shortenedUrl).toMatch(
-      new RegExp(`^${baseUrl}/url/[A-Za-z0-9+/=]{3,}$`),
+      new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$`),
     );
 
     // Verify the URL was created in repo
     const record = await repo.findByOriginalUrl(originalUrl);
     expect(record).not.toBeNull();
     expect(record?.original_url).toBe(originalUrl);
-    expect(record?.hashed_url).toMatch(/[A-Za-z0-9+/=]{6}/);
+    expect(record?.hashed_url).toMatch(/[A-Za-z0-9_-]{6}/);
     expect(record?.userId).toBeNull();
     expect(record?.expiresAt).toBeInstanceOf(Date);
   });
@@ -99,13 +100,49 @@ describe('UrlShortenerService - random hash tests', () => {
     vi.useRealTimers();
   });
 
+  test('should invalidate the cached entry when reusing an existing record', async () => {
+    const originalUrl = 'https://example.com';
+    const shortenedUrl = await service.shorten(originalUrl);
+    const hash = shortenedUrl.split('/').pop()!;
+
+    expect(redisCacheUrlShortener.invalidate).not.toHaveBeenCalled();
+
+    await service.shorten(originalUrl);
+
+    expect(redisCacheUrlShortener.invalidate).toHaveBeenCalledWith(hash);
+  });
+
+  test('should not reuse a custom alias when shortening anonymously', async () => {
+    const originalUrl = 'https://example.com';
+    const customAlias = 'my-promo';
+    await repo.createCustom(originalUrl, customAlias, 'user-1');
+    const customRecord = await repo.findByHash(customAlias);
+    const customExpiresAt = customRecord!.expiresAt.getTime();
+
+    const shortenedUrl = await service.shorten(originalUrl);
+
+    expect(shortenedUrl).not.toBe(`${baseUrl}/url/${customAlias}`);
+    expect(createRandomSpy).toHaveBeenCalledTimes(1);
+    expect(customRecord!.expiresAt.getTime()).toBe(customExpiresAt);
+    expect(customRecord!.userId).toBe('user-1');
+  });
+
+  test('should reuse the anonymous record even when a custom alias exists for the same url', async () => {
+    const originalUrl = 'https://example.com';
+    const firstShortenedUrl = await service.shorten(originalUrl);
+    await repo.createCustom(originalUrl, 'my-promo', 'user-1');
+
+    const secondShortenedUrl = await service.shorten(originalUrl);
+
+    expect(secondShortenedUrl).toBe(firstShortenedUrl);
+    expect(createRandomSpy).toHaveBeenCalledTimes(1);
+  });
+
   test('should throw error when max attempts exceeded', async () => {
     // Mock the repository to always return a hash that exists
     vi.spyOn(repo, 'findByHash').mockResolvedValue({
       original_url: 'https://example.com',
       hashed_url: 'existing-hash',
-      clicks: 0,
-      lastAccessed: null,
       userId: null,
       expiresAt: new Date(),
     });

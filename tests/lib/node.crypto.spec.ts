@@ -29,7 +29,7 @@ describe('generateHash', () => {
 
   it('should have a reasonable length based on HASH_STRONG_NUMBER', () => {
     const result = generateHash();
-    expect(result.length).toBe(12);
+    expect(result.length).toBe(10);
   });
 
   it('should return unique and valid strings on multiple calls', () => {
@@ -37,23 +37,15 @@ describe('generateHash', () => {
     const call2 = generateHash();
 
     expect(call1).not.toBe(call2);
-    expect(call1.length).toBe(12);
-    expect(call2.length).toBe(12);
+    expect(call1.length).toBe(10);
+    expect(call2.length).toBe(10);
   });
 
-  it('should not contain any forward slashes', () => {
+  it('should only contain URL-safe base64 characters without padding', () => {
     for (let i = 0; i < 50; i++) {
       const result = generateHash();
-      expect(result).not.toContain('/');
+      expect(result).toMatch(/^[A-Za-z0-9_-]+$/);
     }
-  });
-
-  it('should match a base64 character set structure after replacing 1 back to /', () => {
-    const result = generateHash();
-    const originalBase64 = result.replace(/1/g, '/');
-
-    const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
-    expect(base64Regex.test(originalBase64)).toBe(true);
   });
 
   it('should change output length when HASH_STRONG_NUMBER changes', () => {

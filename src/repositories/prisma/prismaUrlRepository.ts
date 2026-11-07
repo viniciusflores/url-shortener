@@ -1,20 +1,16 @@
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../../prisma/generated/client';
 import type { IUrlRepository, UrlRecord } from '../interfaces/urlRepository';
-import { DATABASE_URL } from '../../env';
 import {
   getExpiryDatePlusOneYear,
   getExpiryDatePlusTwoYears,
 } from '../../lib/date/utils';
-
-const adapter = new PrismaPg({ connectionString: DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+import { prisma } from './prismaClient';
 
 export class PrismaUrlRepository implements IUrlRepository {
   async findByOriginalUrl(url: string): Promise<UrlRecord | null> {
     const data = await prisma.urlShortener.findFirst({
       where: {
         original_url: url,
+        userId: null,
       },
     });
 
@@ -85,24 +81,6 @@ export class PrismaUrlRepository implements IUrlRepository {
     });
 
     return data;
-  }
-
-  async incrementClicks(hash: string): Promise<void> {
-    try {
-      await prisma.urlShortener.update({
-        where: {
-          hashed_url: hash,
-        },
-        data: {
-          clicks: {
-            increment: 1,
-          },
-          lastAccessed: new Date(),
-        },
-      });
-    } catch (error) {
-      throw new Error(`Record with hash ${hash} not found`, { cause: error });
-    }
   }
 
   async updateExpiresAtInOneYear(hash: string): Promise<UrlRecord> {

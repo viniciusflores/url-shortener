@@ -53,8 +53,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -86,8 +84,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -95,7 +91,7 @@ describe('UrlShortenerService - Business Rules', () => {
 
       const shortened = await service.shorten(specialUrl);
       expect(shortened).toMatch(
-        new RegExp(`^${baseUrl}/url/[A-Za-z0-9+/=]{3,}$`),
+        new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$`),
       );
     });
 
@@ -107,8 +103,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -116,7 +110,7 @@ describe('UrlShortenerService - Business Rules', () => {
 
       const shortened = await service.shorten(unicodeUrl);
       expect(shortened).toMatch(
-        new RegExp(`^${baseUrl}/url/[A-Za-z0-9+/=]{3,}$`),
+        new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$`),
       );
     });
 
@@ -128,8 +122,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -137,7 +129,7 @@ describe('UrlShortenerService - Business Rules', () => {
 
       const shortened = await service.shorten(fragmentUrl);
       expect(shortened).toMatch(
-        new RegExp(`^${baseUrl}/url/[A-Za-z0-9+/=]{3,}$`),
+        new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$`),
       );
     });
 
@@ -149,8 +141,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -158,7 +148,7 @@ describe('UrlShortenerService - Business Rules', () => {
 
       const shortened = await service.shorten(longUrl);
       expect(shortened).toMatch(
-        new RegExp(`^${baseUrl}/url/[A-Za-z0-9+/=]{3,}$`),
+        new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$`),
       );
     });
   });
@@ -169,8 +159,6 @@ describe('UrlShortenerService - Business Rules', () => {
       vi.spyOn(repo, 'findByHash').mockResolvedValue({
         original_url: 'https://example.com',
         hashed_url: 'existing-hash',
-        clicks: 0,
-        lastAccessed: null,
         userId: null,
         expiresAt: new Date(),
       });
@@ -194,8 +182,6 @@ describe('UrlShortenerService - Business Rules', () => {
           // Second call - taken by same user
           original_url: originalUrl,
           hashed_url: customAlias,
-          clicks: 0,
-          lastAccessed: null,
           userId: userId,
           expiresAt: new Date(),
         });
@@ -204,8 +190,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: alias,
-          clicks: 0,
-          lastAccessed: null,
           userId: uid,
           expiresAt: new Date(),
         });
@@ -232,8 +216,6 @@ describe('UrlShortenerService - Business Rules', () => {
       vi.spyOn(repo, 'findByHash').mockResolvedValue({
         original_url: 'https://other.com',
         hashed_url: customAlias,
-        clicks: 0,
-        lastAccessed: null,
         userId: userId1,
         expiresAt: new Date(),
       });
@@ -260,8 +242,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -334,8 +314,6 @@ describe('UrlShortenerService - Business Rules', () => {
         return Promise.resolve({
           original_url: url,
           hashed_url: hash,
-          clicks: 0,
-          lastAccessed: null,
           userId: null,
           expiresAt: new Date(),
         });
@@ -344,7 +322,7 @@ describe('UrlShortenerService - Business Rules', () => {
       const shortened = await service.shorten(originalUrl);
 
       expect(shortened).toMatch(
-        new RegExp(`^${baseUrl}/url/[A-Za-z0-9+/=]{3,}$`),
+        new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$`),
       );
     });
   });

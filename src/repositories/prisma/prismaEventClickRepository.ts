@@ -1,14 +1,9 @@
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../../prisma/generated/client';
-import { DATABASE_URL } from '../../env';
 import {
   ClickEvent,
   ClickEventRange,
   IClickEventRepository,
 } from '../interfaces/clickEventRepository';
-
-const adapter = new PrismaPg({ connectionString: DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+import { prisma } from './prismaClient';
 
 export class PrismaClickEventRepository implements IClickEventRepository {
   async create(
@@ -25,6 +20,18 @@ export class PrismaClickEventRepository implements IClickEventRepository {
     });
 
     return data;
+  }
+
+  async countByHashes(hashes: string[]): Promise<Map<string, number>> {
+    const groups = await prisma.clickEvent.groupBy({
+      by: ['shortener_url_id'],
+      where: { shortener_url_id: { in: hashes } },
+      _count: { _all: true },
+    });
+
+    return new Map(
+      groups.map((group) => [group.shortener_url_id, group._count._all]),
+    );
   }
 
   async getDataByHash(

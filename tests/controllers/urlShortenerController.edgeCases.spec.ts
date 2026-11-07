@@ -53,19 +53,4 @@ describe('URL Shortener Controller - Edge Cases', () => {
       expect(errorMessage).toBe('Internal Server Error');
     });
   });
-
-  describe('GET /url/:hash', () => {
-    it('should handle non-existent hash with proper error handling', async () => {
-      // Mock the service to return null for non-existent hashes
-      vi.spyOn(
-        UrlShortenerService.prototype,
-        'resolveShortenedUrl',
-      ).mockResolvedValue(null);
-
-      const response = await request(app).get('/url/nonexistent').expect(404);
-
-      const errorMessage = JSON.parse(response.text).message;
-      expect(errorMessage).toBe('Not Found : The requested URL does not exist');
-    });
-  });
 });

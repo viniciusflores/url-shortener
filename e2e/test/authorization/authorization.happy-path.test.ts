@@ -11,13 +11,13 @@ describe('Authorization happy path test', function () {
 
     const response = await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
 
-    expect(response.statusCode).to.equal(200);
-    expect(response.body).to.equal(`Success auth register to: ${username}`);
+    expect(response.statusCode).to.equal(201);
+    expect(JSON.parse(response.body)).to.deep.equal({ email: username });
   });
 
   test('should be possible to login an user', async function () {
@@ -27,14 +27,14 @@ describe('Authorization happy path test', function () {
 
     await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
 
     const response = await got.post(`${BASE_URL}/auth/login`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });

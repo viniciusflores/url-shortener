@@ -7,8 +7,8 @@
   "author": "Vinicius Flores <viniciusflores379@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js",
+    "build": "tsc --noEmit",
+    "start": "tsx src/server.ts",
     "start:prod": "prisma migrate deploy && npm run start",
     "dev": "tsx watch src/server.ts",
     "generate": "prisma generate",
@@ -30,6 +30,7 @@
     "express-rate-limit": "^8.5.2",
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
+    "tsx": "^4.22.4",
     "winston": "^3.19.0",
     "zod": "^4.4.3"
   },
@@ -38,7 +39,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.9.3",
+    "@types/node": "^22.20.5",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^10.4.1",
@@ -51,7 +52,6 @@
     "prettier": "3.8.4",
     "prisma": "^7.8.0",
     "supertest": "^7.2.2",
-    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
     "vitest": "^4.1.8"

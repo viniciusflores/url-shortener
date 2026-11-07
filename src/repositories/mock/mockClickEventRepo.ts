@@ -25,6 +25,19 @@ export class MockClickEventRepository implements IClickEventRepository {
     return record;
   }
 
+  async countByHashes(hashes: string[]): Promise<Map<string, number>> {
+    const counts = new Map<string, number>();
+    for (const click of this.databaseInMemory) {
+      if (hashes.includes(click.shortener_url_id)) {
+        counts.set(
+          click.shortener_url_id,
+          (counts.get(click.shortener_url_id) ?? 0) + 1,
+        );
+      }
+    }
+    return counts;
+  }
+
   async getDataByHash(
     hash: string,
     range: ClickEventRange = {},

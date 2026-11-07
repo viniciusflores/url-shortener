@@ -32,7 +32,7 @@ describe('loggerMiddleware', () => {
     res.emit('finish');
 
     expect(spy).toHaveBeenCalledOnce();
-    const message = spy.mock.calls[0][0] as string;
+    const message = String(spy.mock.calls[0][0]);
     expect(message).toContain('POST');
     expect(message).toContain('/shorten');
     expect(message).toContain('201');

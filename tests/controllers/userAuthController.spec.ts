@@ -33,13 +33,13 @@ describe('User Auth Controller', () => {
   it('should be possible to register a user', async () => {
     const response = await request(app)
       .post('/auth/register')
-      .send({ username: username, password: password });
+      .send({ email: username, password: password });
 
-    expect(response.status).toBe(200);
-    expect(response.text).toContain(`Success auth register to: ${username}`);
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({ email: username });
   });
 
-  it('should return 400 for registration with missing username', async () => {
+  it('should return 400 for registration with missing email', async () => {
     const response = await request(app)
       .post('/auth/register')
       .send({ password: password });
@@ -52,17 +52,17 @@ describe('User Auth Controller', () => {
   it('should return 400 for registration with missing password', async () => {
     const response = await request(app)
       .post('/auth/register')
-      .send({ username: username });
+      .send({ email: username });
 
     expect(response.status).toBe(400);
     const errorMessage = JSON.parse(response.text).message;
     expect(errorMessage).toBe('Bad Request: Missing required fields');
   });
 
-  it('should return 400 for registration with empty username', async () => {
+  it('should return 400 for registration with empty email', async () => {
     const response = await request(app)
       .post('/auth/register')
-      .send({ username: '', password: password });
+      .send({ email: '', password: password });
 
     expect(response.status).toBe(400);
     const errorMessage = JSON.parse(response.text).message;
@@ -72,7 +72,7 @@ describe('User Auth Controller', () => {
   it('should return 400 for registration with empty password', async () => {
     const response = await request(app)
       .post('/auth/register')
-      .send({ username: username, password: '' });
+      .send({ email: username, password: '' });
 
     expect(response.status).toBe(400);
     const errorMessage = JSON.parse(response.text).message;
@@ -90,13 +90,13 @@ describe('User Auth Controller', () => {
 
     const response = await request(app)
       .post('/auth/login')
-      .send({ username: username, password: password });
+      .send({ email: username, password: password });
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('token');
   });
 
-  it('should return 400 for login with missing username', async () => {
+  it('should return 400 for login with missing email', async () => {
     const response = await request(app)
       .post('/auth/login')
       .send({ password: password });
@@ -109,7 +109,7 @@ describe('User Auth Controller', () => {
   it('should return 400 for login with missing password', async () => {
     const response = await request(app)
       .post('/auth/login')
-      .send({ username: username });
+      .send({ email: username });
 
     expect(response.status).toBe(400);
     const errorMessage = JSON.parse(response.text).message;
@@ -119,7 +119,7 @@ describe('User Auth Controller', () => {
   it('should return 500 for login with non-existent user', async () => {
     const response = await request(app)
       .post('/auth/login')
-      .send({ username: 'nonexistent@gmail.com', password: password });
+      .send({ email: 'nonexistent@gmail.com', password: password });
 
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('message');
@@ -136,7 +136,7 @@ describe('User Auth Controller', () => {
 
     const response = await request(app)
       .post('/auth/login')
-      .send({ username: username, password: 'wrongpassword' });
+      .send({ email: username, password: 'wrongpassword' });
 
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('message');
@@ -146,14 +146,14 @@ describe('User Auth Controller', () => {
     // First registration should succeed
     const firstResponse = await request(app)
       .post('/auth/register')
-      .send({ username: username, password: password });
+      .send({ email: username, password: password });
 
-    expect(firstResponse.status).toBe(200);
+    expect(firstResponse.status).toBe(201);
 
     // Second registration with same username should fail
     const secondResponse = await request(app)
       .post('/auth/register')
-      .send({ username: username, password: password });
+      .send({ email: username, password: password });
 
     expect(secondResponse.status).toBe(409);
   });
@@ -161,9 +161,9 @@ describe('User Auth Controller', () => {
   it('should properly hash passwords during registration', async () => {
     const response = await request(app)
       .post('/auth/register')
-      .send({ username: username, password: password });
+      .send({ email: username, password: password });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(201);
 
     // Verify that the user was created with a hashed password
     const user = await prisma.user.findUnique({

@@ -1,12 +1,15 @@
 import { BadRequestError, NotFoundError } from '../lib/errors';
 import type { IUrlRepository } from '../repositories/interfaces/urlRepository';
 import type { IUserRepository } from '../repositories/interfaces/userRepository';
+import type { IClickEventRepository } from '../repositories/interfaces/clickEventRepository';
 import { redisCacheUrlShortener } from '../lib/cache';
+import { isValidCustomAlias } from '../lib/validators';
 
 export class UrlManagementService {
   constructor(
     private urlRepository: IUrlRepository,
     private userRepository: IUserRepository,
+    private clickEventRepository: IClickEventRepository,
   ) {}
 
   async showMyUrls(userId: string): Promise<any> {
@@ -19,7 +22,15 @@ export class UrlManagementService {
       throw new NotFoundError('User not found');
     }
 
-    return await this.urlRepository.findByUserId(userId);
+    const urls = await this.urlRepository.findByUserId(userId);
+    const counts = await this.clickEventRepository.countByHashes(
+      urls.map((url) => url.hashed_url),
+    );
+
+    return urls.map((url) => ({
+      ...url,
+      clicks: counts.get(url.hashed_url) ?? 0,
+    }));
   }
 
   async showMyUrlByHash(userId: string, hash: string): Promise<any> {
@@ -43,7 +54,9 @@ export class UrlManagementService {
       throw new NotFoundError('Url not found');
     }
 
-    return existRecord;
+    const counts = await this.clickEventRepository.countByHashes([hash]);
+
+    return { ...existRecord, clicks: counts.get(hash) ?? 0 };
   }
 
   async updateAlias(
@@ -57,7 +70,11 @@ export class UrlManagementService {
     if (!hash || typeof hash !== 'string' || hash.trim() === '') {
       throw new BadRequestError('Invalid hash');
     }
-    if (!newAlias || typeof newAlias !== 'string' || newAlias.trim() === '') {
+    if (
+      !newAlias ||
+      typeof newAlias !== 'string' ||
+      !isValidCustomAlias(newAlias)
+    ) {
       throw new BadRequestError('Invalid new alias');
     }
     const existUser = await this.userRepository.getById(userId);
@@ -76,13 +93,12 @@ export class UrlManagementService {
       throw new BadRequestError('Custom alias already taken');
     }
 
-    await redisCacheUrlShortener.invalidate(hash);
-
     const updatedUrl = await this.urlRepository.updateAlias(
       userId,
       hash,
       newAlias,
     );
+    await redisCacheUrlShortener.invalidate(hash);
     return updatedUrl;
   }
 
@@ -105,7 +121,7 @@ export class UrlManagementService {
       throw new NotFoundError('URL not found for the user');
     }
 
-    await redisCacheUrlShortener.invalidate(hash);
     await this.urlRepository.deleteByUserIdAndHash(userId, hash);
+    await redisCacheUrlShortener.invalidate(hash);
   }
 }

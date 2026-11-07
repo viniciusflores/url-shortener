@@ -4,12 +4,12 @@ import { expect, describe, test, beforeAll } from 'vitest';
 const { BASE_URL } = process.env;
 
 describe('URL Management tests', async () => {
-  let timestamp;
-  let username;
-  let password;
-  let original_url;
-  let custom_alias;
-  let token;
+  let timestamp: number;
+  let username: string;
+  let password: string;
+  let original_url: string;
+  let custom_alias: string;
+  let token: string;
 
   beforeAll(async () => {
     timestamp = Date.now();
@@ -20,14 +20,14 @@ describe('URL Management tests', async () => {
 
     await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
 
     const responseAuth = await got.post(`${BASE_URL}/auth/login`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });

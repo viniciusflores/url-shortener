@@ -12,10 +12,11 @@ export function authMiddleware(
     return res.status(401).json({ error: 'Missing or invalid token' });
   }
   const token = authHeader.substring(7).trim();
-  try {
-    req.user = verifyToken(token);
-    next();
-  } catch {
+  const decoded = verifyToken(token);
+  if (!decoded) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
+
+  req.user = decoded;
+  next();
 }

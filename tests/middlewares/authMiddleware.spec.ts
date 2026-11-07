@@ -12,7 +12,12 @@ describe('authMiddleware', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: NextFunction;
-  const mockUser = { id: '123', email: 'test@example.com' };
+  const mockUser = {
+    userId: '123',
+    email: 'test@example.com',
+    iat: 1234567890,
+    exp: 1234567890,
+  };
 
   beforeEach(() => {
     req = {
@@ -50,9 +55,7 @@ describe('authMiddleware', () => {
 
   it('should return 401 if token is invalid or expired', async () => {
     req.headers = { authorization: 'Bearer invalid-token' };
-    vi.mocked(verifyToken).mockImplementation(() => {
-      throw new Error('Invalid token');
-    });
+    vi.mocked(verifyToken).mockReturnValue(null);
 
     await authMiddleware(req as Request, res as Response, next);
 
@@ -61,6 +64,7 @@ describe('authMiddleware', () => {
       error: 'Invalid or expired token',
     });
     expect(next).not.toHaveBeenCalled();
+    expect(req.user).toBeUndefined();
   });
 
   it('should call next() and attach user to request if token is valid', async () => {
@@ -77,9 +81,7 @@ describe('authMiddleware', () => {
 
   it('should handle empty token gracefully', async () => {
     req.headers = { authorization: 'Bearer ' };
-    vi.mocked(verifyToken).mockImplementation(() => {
-      throw new Error('Invalid token');
-    });
+    vi.mocked(verifyToken).mockReturnValue(null);
 
     await authMiddleware(req as Request, res as Response, next);
 
@@ -87,6 +89,7 @@ describe('authMiddleware', () => {
     expect(res.json).toHaveBeenCalledWith({
       error: 'Invalid or expired token',
     });
+    expect(next).not.toHaveBeenCalled();
   });
 
   it('should work correctly with token containing special characters', async () => {

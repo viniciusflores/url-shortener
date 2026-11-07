@@ -9,17 +9,15 @@ datasource db {
 
 model UrlShortener {
   original_url String
-  hashed_url   String       @id @unique
+  hashed_url   String       @id
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
-  clicks       Int          @default(0)
-  lastAccessed DateTime?
   expiresAt    DateTime
   userId       String?
   user         User?        @relation(fields: [userId], references: [id])
   clickEvents  ClickEvent[]
 
-  @@index([hashed_url])
+  @@index([original_url], type: Hash)
 }
 
 model User {

@@ -23,7 +23,7 @@ describe('JWT Helper Functions', () => {
     it('should sign a token successfully', async () => {
       const mockToken = 'mock-signed-token';
       const jsonwebtoken = await import('jsonwebtoken');
-      vi.mocked(jsonwebtoken.default.sign).mockReturnValue(mockToken);
+      vi.mocked(jsonwebtoken.default.sign).mockReturnValue(mockToken as never);
 
       const result = signToken(mockPayload);
 
@@ -41,7 +41,7 @@ describe('JWT Helper Functions', () => {
 
       const mockToken = 'mock-signed-token';
       const jsonwebtoken = await import('jsonwebtoken');
-      vi.mocked(jsonwebtoken.default.sign).mockReturnValue(mockToken);
+      vi.mocked(jsonwebtoken.default.sign).mockReturnValue(mockToken as never);
 
       signToken(mockPayload);
 
@@ -65,7 +65,9 @@ describe('JWT Helper Functions', () => {
       };
 
       const jsonwebtoken = await import('jsonwebtoken');
-      vi.mocked(jsonwebtoken.default.verify).mockReturnValue(mockDecoded);
+      vi.mocked(jsonwebtoken.default.verify).mockReturnValue(
+        mockDecoded as never,
+      );
 
       const result = verifyToken('valid-token');
 

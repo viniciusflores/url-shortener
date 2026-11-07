@@ -1,8 +1,6 @@
 export interface UrlRecord {
   original_url: string;
   hashed_url: string;
-  clicks: number;
-  lastAccessed: Date | null;
   userId: string | null;
   expiresAt: Date;
 }
@@ -20,7 +18,6 @@ export interface IUrlRepository {
     user_id: string,
   ): Promise<UrlRecord>;
 
-  incrementClicks(hash: string): Promise<void>;
   updateExpiresAtInOneYear(hash: string): Promise<UrlRecord>;
 
   updateAlias(

@@ -48,10 +48,11 @@ describe('URL Management Controller - Integration Tests', () => {
     });
 
     it('should return 401 with invalid token', async () => {
-      await request(app)
+      const response = await request(app)
         .get('/me/urls')
         .set('Authorization', 'Bearer invalid-token')
         .expect(401);
+      expect(response.body.error).toBe('Invalid or expired token');
     });
   });
 
@@ -64,6 +65,23 @@ describe('URL Management Controller - Integration Tests', () => {
 
       expect(response.body).toHaveLength(1);
       expect(response.body[0].hashed_url).toBe('owner-alias');
+    });
+
+    it('should return the clicks count from click events', async () => {
+      await prisma.clickEvent.createMany({
+        data: [
+          { shortener_url_id: 'owner-alias' },
+          { shortener_url_id: 'owner-alias' },
+          { shortener_url_id: 'other-alias' },
+        ],
+      });
+
+      const response = await request(app)
+        .get('/me/urls')
+        .set('Authorization', `Bearer ${ownerToken}`)
+        .expect(200);
+
+      expect(response.body[0].clicks).toBe(2);
     });
   });
 
@@ -78,6 +96,7 @@ describe('URL Management Controller - Integration Tests', () => {
         expect.objectContaining({
           hashed_url: 'owner-alias',
           original_url: 'https://www.example.com/owner-alias',
+          clicks: 0,
         }),
       );
     });

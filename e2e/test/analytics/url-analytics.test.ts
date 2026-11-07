@@ -5,10 +5,10 @@ const { BASE_URL } = process.env;
 
 const registerAndLogin = async (username: string, password: string) => {
   await got.post(`${BASE_URL}/auth/register`, {
-    json: { username, password },
+    json: { email: username, password },
   });
   const response = await got.post(`${BASE_URL}/auth/login`, {
-    json: { username, password },
+    json: { email: username, password },
   });
   return JSON.parse(response.body).token as string;
 };

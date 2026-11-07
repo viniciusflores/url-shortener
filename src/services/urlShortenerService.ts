@@ -3,6 +3,7 @@ import {
   isValidURLToBeShortener,
   isValidCustomAlias,
   validateHashOrCustomHashToBeResolved,
+  isSelfReferencingUrl,
 } from '../lib/validators';
 import { generateHash } from '../lib/crypto';
 import {
@@ -35,6 +36,9 @@ export class UrlShortenerService {
     if (!isValidURLToBeShortener(originalUrl)) {
       throw new BadRequestError('Invalid URL');
     }
+    if (isSelfReferencingUrl(originalUrl, BASE_URL)) {
+      throw new BadRequestError('Cannot shorten URLs from this service');
+    }
 
     if (customAlias !== undefined && userId !== undefined) {
       if (
@@ -66,8 +70,6 @@ export class UrlShortenerService {
         await redisCacheUrlShortener.invalidate(hash);
         throw new ResourcePermanentlyRemovedError();
       }
-      //TODO: add conditional to increment clicks better
-      await this.repo.incrementClicks(hash);
       return cached;
     }
 
@@ -82,8 +84,6 @@ export class UrlShortenerService {
     }
 
     await redisCacheUrlShortener.set({ hash, original_url, expiresAt });
-    //TODO: add conditional to increment clicks better
-    await this.repo.incrementClicks(hash);
     const formattedUrl = { original_url, expiresAt };
     return formattedUrl;
   }
@@ -107,6 +107,7 @@ export class UrlShortenerService {
     if (existingRecord) {
       const hash = existingRecord.hashed_url;
       await this.repo.updateExpiresAtInOneYear(hash);
+      await redisCacheUrlShortener.invalidate(hash);
       return `${BASE_URL}/url/${existingRecord.hashed_url}`;
     }
 

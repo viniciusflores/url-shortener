@@ -55,7 +55,7 @@ describe('UrlShortenerService', () => {
       const shortenedUrl = await service.shorten(originalUrl);
 
       expect(shortenedUrl).toMatch(
-        new RegExp(`^${baseUrl}/url/[A-Za-z0-9+1=]{3,}$$`),
+        new RegExp(`^${baseUrl}/url/[A-Za-z0-9_-]{3,}$$`),
       );
       repo.findByOriginalUrl(originalUrl).then((record) => {
         expect(record).not.toBeNull();
@@ -109,8 +109,6 @@ describe('UrlShortenerService', () => {
       vi.spyOn(repo, 'findByHash').mockResolvedValue({
         original_url: 'https://example.com',
         hashed_url: 'existing-hash',
-        clicks: 0,
-        lastAccessed: null,
         userId: null,
         expiresAt: new Date(),
       });

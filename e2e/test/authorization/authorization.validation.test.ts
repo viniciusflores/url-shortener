@@ -11,7 +11,7 @@ describe('Authorization validation tests', function () {
 
     await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
@@ -19,7 +19,7 @@ describe('Authorization validation tests', function () {
     try {
       await got.post(`${BASE_URL}/auth/register`, {
         json: {
-          username,
+          email: username,
           password,
         },
       });

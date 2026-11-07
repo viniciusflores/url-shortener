@@ -9,7 +9,9 @@ export class MockUrlRepository implements IUrlRepository {
 
   async findByOriginalUrl(url: string): Promise<UrlRecord | null> {
     return (
-      this.databaseInMemory.find((data) => data.original_url === url) ?? null
+      this.databaseInMemory.find(
+        (data) => data.original_url === url && data.userId === null,
+      ) ?? null
     );
   }
 
@@ -41,8 +43,6 @@ export class MockUrlRepository implements IUrlRepository {
     const record: UrlRecord = {
       original_url: originalUrl,
       hashed_url: hashedUrl,
-      clicks: 0,
-      lastAccessed: null,
       userId: null,
       expiresAt: getExpiryDatePlusOneYear(),
     };
@@ -58,29 +58,11 @@ export class MockUrlRepository implements IUrlRepository {
     const record: UrlRecord = {
       original_url: originalUrl,
       hashed_url: custom_alias,
-      clicks: 0,
-      lastAccessed: null,
       userId: user_id,
       expiresAt: getExpiryDatePlusTwoYears(),
     };
     this.databaseInMemory.push(record);
     return record;
-  }
-
-  async incrementClicks(hash: string): Promise<void> {
-    const record = this.databaseInMemory.find(
-      (data) => data.hashed_url === hash,
-    );
-
-    if (!record) {
-      const prismaError = new Error('Record not found');
-      throw new Error(`Record with hash ${hash} not found`, {
-        cause: prismaError,
-      });
-    }
-
-    record.clicks += 1;
-    record.lastAccessed = new Date();
   }
 
   async updateExpiresAtInOneYear(hash: string): Promise<UrlRecord> {

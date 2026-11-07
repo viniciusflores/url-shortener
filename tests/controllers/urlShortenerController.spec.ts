@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import request from 'supertest';
 import app from '../../src/app';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../prisma/generated/client';
 import { signToken } from '../../src/lib/jwt';
+import { PrismaClickEventRepository } from '../../src/repositories/prisma/prismaEventClickRepository';
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -68,11 +69,30 @@ describe('URL Shortener Controller - Integration Tests', () => {
         .set('User-Agent', 'Chrome 123')
         .expect(302);
 
-      const clicks = await prisma.clickEvent.findMany({
-        where: { shortener_url_id: hash },
+      await vi.waitFor(async () => {
+        const clicks = await prisma.clickEvent.findMany({
+          where: { shortener_url_id: hash },
+        });
+        expect(clicks).toHaveLength(1);
+        expect(clicks[0].userAgent).toBe('Chrome 123');
       });
-      expect(clicks).toHaveLength(1);
-      expect(clicks[0].userAgent).toBe('Chrome 123');
+    });
+
+    it('should still redirect when registering the click event fails', async () => {
+      const originalUrl = 'https://www.example.com/analytics-down';
+      const createResponse = await request(app)
+        .post('/url/')
+        .send({ original_url: originalUrl })
+        .expect(200);
+      const hash = createResponse.body.shortened_url.split('/').pop();
+
+      vi.spyOn(
+        PrismaClickEventRepository.prototype,
+        'create',
+      ).mockRejectedValueOnce(new Error('db down'));
+
+      const response = await request(app).get(`/url/${hash}`).expect(302);
+      expect(response.headers.location).toBe(originalUrl);
     });
   });
 

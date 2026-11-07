@@ -31,14 +31,14 @@ describe('Shorten URL happy path tests', function () {
 
     await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
 
     const responseAuth = await got.post(`${BASE_URL}/auth/login`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });

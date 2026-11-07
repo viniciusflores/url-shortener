@@ -41,4 +41,8 @@ describe('isValidHash', () => {
   test('accepts hash with forward slash and plus', () => {
     expect(isValidHash('abc/123+')).toBe(true);
   });
+
+  test('accepts base64url hash with dash and underscore', () => {
+    expect(isValidHash('a-b_c123')).toBe(true);
+  });
 });

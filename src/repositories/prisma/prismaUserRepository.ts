@@ -1,10 +1,5 @@
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../../prisma/generated/client';
 import type { IUserRepository, UserRecord } from '../interfaces/userRepository';
-import { DATABASE_URL } from '../../env';
-
-const adapter = new PrismaPg({ connectionString: DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+import { prisma } from './prismaClient';
 
 export class PrismaUserRepository implements IUserRepository {
   async create(email: string, password_hashed: string): Promise<UserRecord> {

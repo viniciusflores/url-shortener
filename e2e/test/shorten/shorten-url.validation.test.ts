@@ -87,14 +87,14 @@ describe('Shorten URL validation tests', function () {
 
     await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
 
     const responseAuth = await got.post(`${BASE_URL}/auth/login`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
@@ -126,14 +126,14 @@ describe('Shorten URL validation tests', function () {
 
     await got.post(`${BASE_URL}/auth/register`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });
 
     const responseAuth = await got.post(`${BASE_URL}/auth/login`, {
       json: {
-        username,
+        email: username,
         password,
       },
     });

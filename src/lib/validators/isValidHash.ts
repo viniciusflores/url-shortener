@@ -1,4 +1,4 @@
-const HASH_PATTERN = /^[A-Za-z0-9+/=]{3,}$/;
+const HASH_PATTERN = /^[A-Za-z0-9+/=_-]{3,}$/;
 const isValidHash = (hash: string): boolean => {
   if (typeof hash !== 'string') {
     return false;
