@@ -4,3 +4,4 @@ export * from './isValidPassword';
 export * from './isValidURLToBeShortener';
 export * from './isValidCustomAlias';
 export * from './isValidHashOrCustomHashToBeResolved';
+export * from './isValidISODate';

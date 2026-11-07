@@ -10,9 +10,11 @@ import { logger } from '../lib/logger/winston';
 import { EventClickService } from '../services/eventClickService';
 import { PrismaClickEventRepository } from '../repositories/prisma/prismaEventClickRepository';
 
-const service = new UrlShortenerService(new PrismaUrlRepository());
+const urlRepository = new PrismaUrlRepository();
+const service = new UrlShortenerService(urlRepository);
 const analyticsService = new EventClickService(
   new PrismaClickEventRepository(),
+  urlRepository,
 );
 
 const getUrlShortenerByHash = async (

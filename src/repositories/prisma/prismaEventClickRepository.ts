@@ -3,6 +3,7 @@ import { PrismaClient } from '../../../prisma/generated/client';
 import { DATABASE_URL } from '../../env';
 import {
   ClickEvent,
+  ClickEventRange,
   IClickEventRepository,
 } from '../interfaces/clickEventRepository';
 
@@ -26,11 +27,16 @@ export class PrismaClickEventRepository implements IClickEventRepository {
     return data;
   }
 
-  async getDataByHash(hash: string): Promise<ClickEvent[] | null> {
+  async getDataByHash(
+    hash: string,
+    range: ClickEventRange = {},
+  ): Promise<ClickEvent[] | null> {
     const data = await prisma.clickEvent.findMany({
       where: {
         shortener_url_id: hash,
+        createdAt: { gte: range.from, lt: range.to },
       },
+      orderBy: { createdAt: 'asc' },
     });
 
     return data;
